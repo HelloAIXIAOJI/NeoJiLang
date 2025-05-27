@@ -1,6 +1,8 @@
 # NeoJiLang (NJIL) 解释器
 
-NeoJiLang (NJIL) 是一个基于JSON语法的解释器，使用Rust语言开发。NJIL语言使用JSON格式描述程序逻辑，易于解析和生成，适合作为配置语言或嵌入式脚本语言使用。
+用JSON编程！
+
+NeoJiLang (NJIL) 是一个基于JSON语法的解释型语言，使用Rust开发。
 
 NeoJiLang 的前身是 JiLang，但因屎太多终止开发。即使JiLang已经理论图灵完备并且我投入了大量时间。
 
