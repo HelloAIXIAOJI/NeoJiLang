@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct NjilProgram {
-    pub import: Option<Vec<String>>,
+    pub import: Option<Vec<Value>>,
     pub program: Program,
 }
 

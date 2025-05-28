@@ -4,6 +4,7 @@ pub mod interpreter;
 pub mod statements;
 pub mod errortip;
 pub mod njis;
+pub mod builtin;
 
 use std::path::Path;
 

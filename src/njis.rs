@@ -24,6 +24,10 @@ pub fn run_njis_file<P: AsRef<Path>>(file_path: P) -> Result<Value, NjilError> {
     
     // 创建解释器并执行语句
     let mut interpreter = Interpreter::new();
+    
+    // NJIS不支持import，所以自动导入所有内置模块
+    interpreter.import_all_builtin_modules()?;
+    
     let mut result = Value::Null;
     
     if let Value::Array(statements) = statements {
@@ -53,6 +57,10 @@ pub fn run_njis_str(content: &str) -> Result<Value, NjilError> {
     
     // 创建解释器并执行语句
     let mut interpreter = Interpreter::new();
+    
+    // NJIS不支持import，所以自动导入所有内置模块
+    interpreter.import_all_builtin_modules()?;
+    
     let mut result = Value::Null;
     
     if let Value::Array(statements) = statements {
