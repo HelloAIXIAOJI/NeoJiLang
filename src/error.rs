@@ -9,6 +9,8 @@ pub enum NjilError {
     ParseStringError(String),
     ExecutionError(String),
     ReturnValue(Value),
+    LoopBreak,
+    LoopContinue,
 }
 
 impl fmt::Display for NjilError {
@@ -19,6 +21,8 @@ impl fmt::Display for NjilError {
             NjilError::ParseStringError(msg) => write!(f, "解析错误: {}", msg),
             NjilError::ExecutionError(msg) => write!(f, "执行错误: {}", msg),
             NjilError::ReturnValue(_) => write!(f, "返回值"),
+            NjilError::LoopBreak => write!(f, "循环中断"),
+            NjilError::LoopContinue => write!(f, "循环继续"),
         }
     }
 }

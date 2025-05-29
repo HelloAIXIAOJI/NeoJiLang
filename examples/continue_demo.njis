@@ -1,0 +1,46 @@
+[
+  {
+    "print": "continue语句示例 - 跳过部分迭代"
+  },
+  {
+    "loop.for": {
+      "count": 5,
+      "var": "i",
+      "body": [
+        {
+          "print": {
+            "string.concat": [
+              "迭代开始: ",
+              {
+                "var": "i"
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "var": "i"
+            },
+            "then": {
+              "loop.continue": null
+            }
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "迭代结束: ",
+              {
+                "var": "i"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "return": "示例完成"
+  }
+] 

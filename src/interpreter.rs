@@ -202,7 +202,38 @@ impl Interpreter {
                 result
             }
             Value::Object(obj) => {
-                // 对于对象类型，序列化为JSON字符串
+                // 检查是否是json.new创建的特殊格式
+                if obj.contains_key("type") && obj.contains_key("value") && obj.len() == 2 {
+                    // 这是json.new创建的值，直接返回value字段的内容
+                    if let Some(val_type) = obj.get("type") {
+                        if let Some(val) = obj.get("value") {
+                            if let Value::String(type_str) = val_type {
+                                match type_str.as_str() {
+                                    "number" => {
+                                        if let Value::Number(n) = val {
+                                            return n.to_string();
+                                        }
+                                    },
+                                    "string" => {
+                                        if let Value::String(s) = val {
+                                            return s.clone();
+                                        }
+                                    },
+                                    "boolean" => {
+                                        if let Value::Bool(b) = val {
+                                            return b.to_string();
+                                        }
+                                    },
+                                    _ => {}
+                                }
+                            }
+                            // 如果类型不匹配或无法处理，尝试直接返回值
+                            return self.value_to_string(val);
+                        }
+                    }
+                }
+                
+                // 对于普通对象类型，序列化为JSON字符串
                 if let Ok(json_str) = serde_json::to_string(obj) {
                     json_str
                 } else {

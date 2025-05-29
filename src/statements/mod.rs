@@ -10,12 +10,21 @@ pub mod string;
 pub mod var;
 pub mod return_stmt;
 pub mod json;
+pub mod control_flow;
 
 use print::PRINT_HANDLER;
 use string::STRING_CONCAT_HANDLER;
 use var::{VAR_HANDLER, VAR_SET_HANDLER};
 use return_stmt::RETURN_HANDLER;
 use json::{JSON_NEW_HANDLER, JSON_GET_HANDLER, JSON_SET_HANDLER};
+use control_flow::{
+    IF_HANDLER,
+    WHILE_LOOP_HANDLER,
+    FOR_LOOP_HANDLER,
+    FOREACH_LOOP_HANDLER,
+    BREAK_HANDLER,
+    CONTINUE_HANDLER,
+};
 
 /// 语句处理器特性
 pub trait StatementHandler: Send + Sync {
@@ -54,6 +63,14 @@ impl StatementRegistry {
         registry.register_handler(&JSON_NEW_HANDLER);
         registry.register_handler(&JSON_GET_HANDLER);
         registry.register_handler(&JSON_SET_HANDLER);
+        
+        // 注册控制流语句处理器
+        registry.register_handler(&IF_HANDLER);
+        registry.register_handler(&WHILE_LOOP_HANDLER);
+        registry.register_handler(&FOR_LOOP_HANDLER);
+        registry.register_handler(&FOREACH_LOOP_HANDLER);
+        registry.register_handler(&BREAK_HANDLER);
+        registry.register_handler(&CONTINUE_HANDLER);
         
         registry
     }

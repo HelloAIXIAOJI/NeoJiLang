@@ -1,0 +1,197 @@
+[
+  {
+    "print": "简易计算器程序"
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "var.set": {
+      "operations": [
+        {
+          "name": "加法",
+          "op": "+"
+        },
+        {
+          "name": "减法",
+          "op": "-"
+        },
+        {
+          "name": "乘法",
+          "op": "*"
+        },
+        {
+          "name": "除法",
+          "op": "/"
+        }
+      ]
+    }
+  },
+  {
+    "var.set": {
+      "num1": 10,
+      "num2": 5,
+      "result": 0
+    }
+  },
+  {
+    "print": "请选择要执行的运算："
+  },
+  {
+    "loop.foreach": {
+      "collection": {
+        "var": "operations"
+      },
+      "var": "op",
+      "index": "idx",
+      "body": {
+        "print": {
+          "string.concat": [
+            {
+              "var": "idx"
+            },
+            ". ",
+            {
+              "var": "op.name"
+            },
+            " (",
+            {
+              "var": "op.op"
+            },
+            ")"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "var.set": {
+      "choice": 0
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "已选择: ",
+        {
+          "var": "choice"
+        },
+        ". ",
+        {
+          "var": "operations.0.name"
+        }
+      ]
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "计算: ",
+        {
+          "var": "num1"
+        },
+        " ",
+        {
+          "var": "operations.0.op"
+        },
+        " ",
+        {
+          "var": "num2"
+        }
+      ]
+    }
+  },
+  {
+    "if": {
+      "condition": {
+        "json.new": {
+          "type": "number",
+          "value": 0
+        }
+      },
+      "then": {
+        "var.set": {
+          "result": {
+            "json.new": {
+              "type": "number",
+              "value": 15
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "if": {
+      "condition": {
+        "json.new": {
+          "type": "number",
+          "value": 1
+        }
+      },
+      "then": {
+        "var.set": {
+          "result": {
+            "json.new": {
+              "type": "number",
+              "value": 5
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "if": {
+      "condition": {
+        "json.new": {
+          "type": "number",
+          "value": 2
+        }
+      },
+      "then": {
+        "var.set": {
+          "result": {
+            "json.new": {
+              "type": "number",
+              "value": 50
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "if": {
+      "condition": {
+        "json.new": {
+          "type": "number",
+          "value": 3
+        }
+      },
+      "then": {
+        "var.set": {
+          "result": {
+            "json.new": {
+              "type": "number",
+              "value": 2
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "结果: ",
+        {
+          "var": "result"
+        }
+      ]
+    }
+  },
+  {
+    "return": "计算完成"
+  }
+] 

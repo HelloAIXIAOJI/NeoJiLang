@@ -1,0 +1,346 @@
+[
+  {
+    "print": "模拟登录系统"
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "var.set": {
+      "users": [
+        {
+          "username": "admin",
+          "password": "admin123",
+          "role": "administrator"
+        },
+        {
+          "username": "user1",
+          "password": "pass123",
+          "role": "user"
+        },
+        {
+          "username": "guest",
+          "password": "guest",
+          "role": "guest"
+        }
+      ]
+    }
+  },
+  {
+    "var.set": {
+      "inputUsername": "admin",
+      "inputPassword": "admin123",
+      "loginSuccess": false,
+      "currentUser": null,
+      "attempts": 0,
+      "maxAttempts": 3
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "尝试登录用户: ",
+        {
+          "var": "inputUsername"
+        }
+      ]
+    }
+  },
+  {
+    "loop.while": {
+      "condition": {
+        "json.new": {
+          "type": "boolean",
+          "value": true
+        }
+      },
+      "body": [
+        {
+          "var.set": {
+            "attempts": {
+              "json.new": {
+                "type": "number",
+                "value": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "json.new": {
+                "type": "boolean",
+                "value": true
+              }
+            },
+            "then": {
+              "var.set": {
+                "loginSuccess": true
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "var": "loginSuccess"
+            },
+            "then": {
+              "loop.break": null
+            }
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "json.new": {
+                "type": "boolean",
+                "value": true
+              }
+            },
+            "then": {
+              "print": {
+                "string.concat": [
+                  "登录失败，剩余尝试次数: ",
+                  {
+                    "json.new": {
+                      "type": "number",
+                      "value": 2
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "loop.break": null
+        }
+      ]
+    }
+  },
+  {
+    "if": {
+      "condition": {
+        "var": "loginSuccess"
+      },
+      "then": [
+        {
+          "var.set": {
+            "currentUser": {
+              "username": "admin",
+              "role": "administrator"
+            }
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "登录成功！欢迎 ",
+              {
+                "var": "currentUser.username"
+              },
+              " (",
+              {
+                "var": "currentUser.role"
+              },
+              ")"
+            ]
+          }
+        }
+      ],
+      "else": {
+        "print": "登录失败，已达到最大尝试次数。"
+      }
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "权限检查："
+  },
+  {
+    "if": {
+      "condition": {
+        "var": "loginSuccess"
+      },
+      "then": [
+        {
+          "if": {
+            "condition": {
+              "json.new": {
+                "type": "boolean",
+                "value": true
+              }
+            },
+            "then": {
+              "print": "您拥有管理员权限，可以访问所有功能。"
+            },
+            "else": {
+              "if": {
+                "condition": {
+                  "json.new": {
+                    "type": "boolean",
+                    "value": false
+                  }
+                },
+                "then": {
+                  "print": "您拥有普通用户权限，可以访问部分功能。"
+                },
+                "else": {
+                  "print": "您是访客，只能访问有限功能。"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "else": {
+        "print": "请先登录系统。"
+      }
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "可访问的功能菜单："
+  },
+  {
+    "var.set": {
+      "adminFeatures": [
+        "用户管理",
+        "系统设置",
+        "数据备份",
+        "日志查看"
+      ],
+      "userFeatures": [
+        "个人信息",
+        "消息中心",
+        "文件管理"
+      ],
+      "guestFeatures": [
+        "公共信息",
+        "联系我们"
+      ]
+    }
+  },
+  {
+    "if": {
+      "condition": {
+        "var": "loginSuccess"
+      },
+      "then": [
+        {
+          "if": {
+            "condition": {
+              "json.new": {
+                "type": "boolean",
+                "value": true
+              }
+            },
+            "then": [
+              {
+                "print": "管理员功能："
+              },
+              {
+                "loop.foreach": {
+                  "collection": {
+                    "var": "adminFeatures"
+                  },
+                  "var": "feature",
+                  "index": "idx",
+                  "body": {
+                    "print": {
+                      "string.concat": [
+                        {
+                          "var": "idx"
+                        },
+                        ". ",
+                        {
+                          "var": "feature"
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "print": "用户功能："
+              },
+              {
+                "loop.foreach": {
+                  "collection": {
+                    "var": "userFeatures"
+                  },
+                  "var": "feature",
+                  "index": "idx",
+                  "body": {
+                    "print": {
+                      "string.concat": [
+                        {
+                          "var": "idx"
+                        },
+                        ". ",
+                        {
+                          "var": "feature"
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "print": "访客功能："
+              },
+              {
+                "loop.foreach": {
+                  "collection": {
+                    "var": "guestFeatures"
+                  },
+                  "var": "feature",
+                  "index": "idx",
+                  "body": {
+                    "print": {
+                      "string.concat": [
+                        {
+                          "var": "idx"
+                        },
+                        ". ",
+                        {
+                          "var": "feature"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "else": {
+        "print": "请先登录系统以查看可用功能。"
+      }
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "退出系统"
+  },
+  {
+    "var.set": {
+      "loginSuccess": false,
+      "currentUser": null
+    }
+  },
+  {
+    "print": "已安全退出系统。"
+  },
+  {
+    "return": "登录系统演示完成"
+  }
+] 

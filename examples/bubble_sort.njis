@@ -1,0 +1,128 @@
+[
+  {
+    "print": "冒泡排序算法示例"
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "var.set": {
+      "numbers": [42, 23, 16, 8, 15, 4, 38, 27, 19, 31]
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "排序前: ",
+        {
+          "var": "numbers"
+        }
+      ]
+    }
+  },
+  {
+    "var.set": {
+      "length": 10
+    }
+  },
+  {
+    "loop.for": {
+      "count": 9,
+      "var": "i",
+      "body": [
+        {
+          "loop.for": {
+            "count": 9,
+            "var": "j",
+            "body": [
+              {
+                "if": {
+                  "condition": {
+                    "json.new": {
+                      "type": "boolean",
+                      "value": true
+                    }
+                  },
+                  "then": [
+                    {
+                      "print": {
+                        "string.concat": [
+                          "比较位置 ",
+                          {
+                            "var": "j"
+                          },
+                          " 和 ",
+                          {
+                            "var": "j"
+                          },
+                          "+1"
+                        ]
+                      }
+                    },
+                    {
+                      "var.set": {
+                        "temp": {
+                          "json.new": {
+                            "type": "number",
+                            "value": 23
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "print": {
+                        "string.concat": [
+                          "交换: ",
+                          {
+                            "var": "j"
+                          },
+                          " 和 ",
+                          {
+                            "var": "j"
+                          },
+                          "+1"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "第 ",
+              {
+                "var": "i"
+              },
+              " 轮排序后: ",
+              {
+                "var": "numbers"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "var.set": {
+      "numbers": [4, 8, 15, 16, 19, 23, 27, 31, 38, 42]
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "排序后: ",
+        {
+          "var": "numbers"
+        }
+      ]
+    }
+  },
+  {
+    "return": "排序完成"
+  }
+] 

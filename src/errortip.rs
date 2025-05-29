@@ -30,4 +30,62 @@ pub mod string {
     pub fn concat_requires_array() -> &'static str {
         "字符串连接需要一个数组"
     }
+}
+
+/// 控制流相关错误
+pub mod control_flow {
+    /// if语句参数类型错误
+    pub fn if_requires_object() -> &'static str {
+        "if语句需要一个对象参数"
+    }
+    
+    /// if语句缺少必要字段
+    pub fn if_missing_fields() -> &'static str {
+        "if语句需要condition和then字段"
+    }
+    
+    /// while循环参数类型错误
+    pub fn while_requires_object() -> &'static str {
+        "while循环需要一个对象参数"
+    }
+    
+    /// while循环缺少必要字段
+    pub fn while_missing_fields() -> &'static str {
+        "while循环需要condition和body字段"
+    }
+    
+    /// for循环参数类型错误
+    pub fn for_requires_object() -> &'static str {
+        "for循环需要一个对象参数"
+    }
+    
+    /// for循环缺少必要字段
+    pub fn for_missing_fields() -> &'static str {
+        "for循环需要count和body字段"
+    }
+    
+    /// foreach循环参数类型错误
+    pub fn foreach_requires_object() -> &'static str {
+        "foreach循环需要一个对象参数"
+    }
+    
+    /// foreach循环缺少必要字段
+    pub fn foreach_missing_fields() -> &'static str {
+        "foreach循环需要collection、var和body字段"
+    }
+    
+    /// 循环变量名类型错误
+    pub fn var_name_requires_string() -> &'static str {
+        "循环变量名必须是字符串"
+    }
+    
+    /// 循环次数类型错误
+    pub fn count_requires_number() -> &'static str {
+        "循环次数必须是数字"
+    }
+    
+    /// 集合类型错误
+    pub fn collection_requires_array_or_object() -> &'static str {
+        "foreach循环的集合必须是数组或对象"
+    }
 } 

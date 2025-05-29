@@ -1,0 +1,332 @@
+[
+  {
+    "print": "控制流语句示例"
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "1. if 条件语句示例"
+  },
+  {
+    "var.set": {
+      "x": 10
+    }
+  },
+  {
+    "if": {
+      "condition": {
+        "var": "x"
+      },
+      "then": {
+        "print": "x 的值为真"
+      }
+    }
+  },
+  {
+    "if": {
+      "condition": {
+        "var": "y"
+      },
+      "then": {
+        "print": "y 的值为真"
+      },
+      "else": {
+        "print": "y 未定义或为假"
+      }
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "2. loop.for 循环示例"
+  },
+  {
+    "loop.for": {
+      "count": 5,
+      "var": "i",
+      "body": [
+        {
+          "print": {
+            "string.concat": [
+              "循环计数: ",
+              {
+                "var": "i"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "3. loop.while 循环示例"
+  },
+  {
+    "var.set": {
+      "counter": 0
+    }
+  },
+  {
+    "loop.while": {
+      "condition": {
+        "var": "counter"
+      },
+      "body": [
+        {
+          "print": {
+            "string.concat": [
+              "当前计数: ",
+              {
+                "var": "counter"
+              }
+            ]
+          }
+        },
+        {
+          "var.set": {
+            "counter": {
+              "json.new": {
+                "type": "number",
+                "value": -1
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "4. loop.foreach 循环示例"
+  },
+  {
+    "var.set": {
+      "colors": [
+        "红色",
+        "绿色",
+        "蓝色",
+        "黄色",
+        "紫色"
+      ]
+    }
+  },
+  {
+    "loop.foreach": {
+      "collection": {
+        "var": "colors"
+      },
+      "var": "color",
+      "index": "idx",
+      "body": [
+        {
+          "print": {
+            "string.concat": [
+              "颜色 ",
+              {
+                "var": "idx"
+              },
+              ": ",
+              {
+                "var": "color"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "5. 对象遍历示例"
+  },
+  {
+    "var.set": {
+      "person": {
+        "name": "张三",
+        "age": 28,
+        "city": "北京",
+        "job": "程序员"
+      }
+    }
+  },
+  {
+    "loop.foreach": {
+      "collection": {
+        "var": "person"
+      },
+      "var": "entry",
+      "body": [
+        {
+          "print": {
+            "string.concat": [
+              {
+                "var": "entry.key"
+              },
+              ": ",
+              {
+                "var": "entry.value"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "6. break 和 continue 示例"
+  },
+  {
+    "loop.for": {
+      "count": 10,
+      "var": "i",
+      "body": [
+        {
+          "if": {
+            "condition": {
+              "json.new": {
+                "type": "number",
+                "value": 5
+              }
+            },
+            "then": {
+              "loop.break": null
+            }
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "循环计数: ",
+              {
+                "var": "i"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "print": "只打印了 0-4，然后就跳出循环了"
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "7. continue 示例 - 只打印奇数"
+  },
+  {
+    "loop.for": {
+      "count": 10,
+      "var": "i",
+      "body": [
+        {
+          "if": {
+            "condition": {
+              "json.new": {
+                "type": "boolean",
+                "value": false
+              }
+            },
+            "then": [
+              {
+                "print": "这条不会执行"
+              }
+            ],
+            "else": [
+              {
+                "if": {
+                  "condition": {
+                    "var": "i"
+                  },
+                  "then": [
+                    {
+                      "if": {
+                        "condition": {
+                          "json.new": {
+                            "type": "number",
+                            "value": 0
+                          }
+                        },
+                        "then": {
+                          "loop.continue": null
+                        }
+                      }
+                    },
+                    {
+                      "print": {
+                        "string.concat": [
+                          "奇数: ",
+                          {
+                            "var": "i"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "8. 嵌套控制流示例"
+  },
+  {
+    "loop.for": {
+      "count": 3,
+      "var": "i",
+      "body": [
+        {
+          "loop.for": {
+            "count": 3,
+            "var": "j",
+            "body": [
+              {
+                "print": {
+                  "string.concat": [
+                    "i=",
+                    {
+                      "var": "i"
+                    },
+                    ", j=",
+                    {
+                      "var": "j"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "控制流示例结束"
+  },
+  {
+    "return": "示例完成"
+  }
+] 

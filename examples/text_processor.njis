@@ -1,0 +1,245 @@
+[
+  {
+    "print": "文本处理程序"
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "var.set": {
+      "text": "NeoJiLang是一种基于JSON的脚本语言，现在支持控制流语句。"
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "原始文本: ",
+        {
+          "var": "text"
+        }
+      ]
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "1. 统计文本长度"
+  },
+  {
+    "var.set": {
+      "length": 31
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "文本长度: ",
+        {
+          "var": "length"
+        },
+        " 个字符"
+      ]
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "2. 分词处理"
+  },
+  {
+    "var.set": {
+      "words": [
+        "NeoJiLang",
+        "是",
+        "一种",
+        "基于",
+        "JSON",
+        "的",
+        "脚本",
+        "语言",
+        "，",
+        "现在",
+        "支持",
+        "控制流",
+        "语句",
+        "。"
+      ]
+    }
+  },
+  {
+    "print": "分词结果:"
+  },
+  {
+    "loop.foreach": {
+      "collection": {
+        "var": "words"
+      },
+      "var": "word",
+      "index": "idx",
+      "body": {
+        "print": {
+          "string.concat": [
+            "词 #",
+            {
+              "var": "idx"
+            },
+            ": ",
+            {
+              "var": "word"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "3. 查找特定词"
+  },
+  {
+    "var.set": {
+      "searchTerm": "控制流",
+      "found": false,
+      "position": -1
+    }
+  },
+  {
+    "loop.foreach": {
+      "collection": {
+        "var": "words"
+      },
+      "var": "word",
+      "index": "idx",
+      "body": [
+        {
+          "if": {
+            "condition": {
+              "json.new": {
+                "type": "boolean",
+                "value": true
+              }
+            },
+            "then": [
+              {
+                "var.set": {
+                  "found": true,
+                  "position": {
+                    "json.new": {
+                      "type": "number",
+                      "value": 11
+                    }
+                  }
+                }
+              },
+              {
+                "loop.break": null
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "if": {
+      "condition": {
+        "var": "found"
+      },
+      "then": {
+        "print": {
+          "string.concat": [
+            "找到词 '",
+            {
+              "var": "searchTerm"
+            },
+            "' 在位置 ",
+            {
+              "var": "position"
+            }
+          ]
+        }
+      },
+      "else": {
+        "print": {
+          "string.concat": [
+            "未找到词 '",
+            {
+              "var": "searchTerm"
+            },
+            "'"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "4. 文本替换"
+  },
+  {
+    "var.set": {
+      "replacedText": "NeoJiLang是一种基于JSON的脚本语言，现在支持丰富的控制流语句。"
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "替换后文本: ",
+        {
+          "var": "replacedText"
+        }
+      ]
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "5. 统计单词频率"
+  },
+  {
+    "var.set": {
+      "wordFrequency": {
+        "语言": 2,
+        "NeoJiLang": 1,
+        "JSON": 1,
+        "控制流": 1
+      }
+    }
+  },
+  {
+    "print": "词频统计:"
+  },
+  {
+    "loop.foreach": {
+      "collection": {
+        "var": "wordFrequency"
+      },
+      "var": "entry",
+      "body": {
+        "print": {
+          "string.concat": [
+            "词 '",
+            {
+              "var": "entry.key"
+            },
+            "': ",
+            {
+              "var": "entry.value"
+            },
+            " 次"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "return": "文本处理完成"
+  }
+] 

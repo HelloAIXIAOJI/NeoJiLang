@@ -1,0 +1,255 @@
+[
+  {
+    "print": "待办事项管理程序"
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "var.set": {
+      "todos": [
+        {
+          "title": "学习NeoJiLang控制流语句",
+          "completed": true
+        },
+        {
+          "title": "创建示例程序",
+          "completed": false
+        },
+        {
+          "title": "实现待办事项管理",
+          "completed": false
+        },
+        {
+          "title": "测试所有功能",
+          "completed": false
+        }
+      ]
+    }
+  },
+  {
+    "print": "所有待办事项："
+  },
+  {
+    "loop.foreach": {
+      "collection": {
+        "var": "todos"
+      },
+      "var": "todo",
+      "index": "idx",
+      "body": {
+        "print": {
+          "string.concat": [
+            {
+              "var": "idx"
+            },
+            ". ",
+            {
+              "var": "todo.title"
+            },
+            " - ",
+            {
+              "if": {
+                "condition": {
+                  "var": "todo.completed"
+                },
+                "then": "✓",
+                "else": "✗"
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "标记任务为已完成："
+  },
+  {
+    "var.set": {
+      "taskToComplete": 2
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "将任务 ",
+        {
+          "var": "taskToComplete"
+        },
+        " 标记为已完成"
+      ]
+    }
+  },
+  {
+    "var.set": {
+      "todos.2.completed": true
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "添加新任务："
+  },
+  {
+    "var.set": {
+      "newTask": {
+        "title": "学习更多NeoJiLang功能",
+        "completed": false
+      }
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "添加新任务: ",
+        {
+          "var": "newTask.title"
+        }
+      ]
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "按完成状态筛选："
+  },
+  {
+    "print": "已完成的任务："
+  },
+  {
+    "loop.foreach": {
+      "collection": {
+        "var": "todos"
+      },
+      "var": "todo",
+      "index": "idx",
+      "body": [
+        {
+          "if": {
+            "condition": {
+              "var": "todo.completed"
+            },
+            "then": {
+              "print": {
+                "string.concat": [
+                  {
+                    "var": "idx"
+                  },
+                  ". ",
+                  {
+                    "var": "todo.title"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "print": "未完成的任务："
+  },
+  {
+    "loop.foreach": {
+      "collection": {
+        "var": "todos"
+      },
+      "var": "todo",
+      "index": "idx",
+      "body": [
+        {
+          "if": {
+            "condition": {
+              "var": "todo.completed"
+            },
+            "then": {
+              "loop.continue": null
+            }
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              {
+                "var": "idx"
+              },
+              ". ",
+              {
+                "var": "todo.title"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "统计信息："
+  },
+  {
+    "var.set": {
+      "total": 4,
+      "completed": 0,
+      "remaining": 0
+    }
+  },
+  {
+    "var.set": {
+      "completed": 2
+    }
+  },
+  {
+    "var.set": {
+      "remaining": 2
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "总任务数: ",
+        {
+          "var": "total"
+        }
+      ]
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "已完成: ",
+        {
+          "var": "completed"
+        }
+      ]
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "未完成: ",
+        {
+          "var": "remaining"
+        }
+      ]
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "待办事项管理完成"
+  },
+  {
+    "return": "待办事项管理完成"
+  }
+] 
