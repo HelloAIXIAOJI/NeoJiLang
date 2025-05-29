@@ -9,11 +9,13 @@ pub mod print;
 pub mod string;
 pub mod var;
 pub mod return_stmt;
+pub mod json;
 
 use print::PRINT_HANDLER;
 use string::STRING_CONCAT_HANDLER;
 use var::{VAR_HANDLER, VAR_SET_HANDLER};
 use return_stmt::RETURN_HANDLER;
+use json::{JSON_NEW_HANDLER, JSON_GET_HANDLER, JSON_SET_HANDLER};
 
 /// 语句处理器特性
 pub trait StatementHandler: Send + Sync {
@@ -47,6 +49,11 @@ impl StatementRegistry {
         registry.register_handler(&VAR_HANDLER);
         registry.register_handler(&VAR_SET_HANDLER);
         registry.register_handler(&RETURN_HANDLER);
+        
+        // 注册JSON相关语句处理器
+        registry.register_handler(&JSON_NEW_HANDLER);
+        registry.register_handler(&JSON_GET_HANDLER);
+        registry.register_handler(&JSON_SET_HANDLER);
         
         registry
     }
