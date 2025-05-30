@@ -1,0 +1,499 @@
+{
+  "import": [
+  ],
+  "program": {
+    "main": {
+      "body": [
+        {
+          "print": "NeoJiLang 弱类型系统演示"
+        },
+        {
+          "print": "------------------------------"
+        },
+        {
+          "print": "1. 类型转换功能"
+        },
+        {
+          "var.set": {
+            "num": 42,
+            "str": "123",
+            "bool": true,
+            "arr": [1, 2, 3],
+            "obj": {
+              "name": "张三",
+              "age": 30
+            }
+          }
+        },
+        {
+          "print": "原始值:"
+        },
+        {
+          "print": {
+            "string.concat": [
+              "num = ",
+              {
+                "var": "num"
+              },
+              " (类型: ",
+              {
+                "type.of": {
+                  "var": "num"
+                }
+              },
+              ")"
+            ]
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "str = ",
+              {
+                "var": "str"
+              },
+              " (类型: ",
+              {
+                "type.of": {
+                  "var": "str"
+                }
+              },
+              ")"
+            ]
+          }
+        },
+        {
+          "print": "类型转换:"
+        },
+        {
+          "print": {
+            "string.concat": [
+              "数字转布尔: ",
+              {
+                "type.bool": {
+                  "var": "num"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "字符串转数字: ",
+              {
+                "type.number": {
+                  "var": "str"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "数组转字符串: ",
+              {
+                "type.string": {
+                  "var": "arr"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "对象转数组: ",
+              {
+                "type.string": {
+                  "type.array": {
+                    "var": "obj"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "字符串转对象: ",
+              {
+                "type.string": {
+                  "type.object": {
+                    "var": "str"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "print": "------------------------------"
+        },
+        {
+          "print": "2. 算术运算"
+        },
+        {
+          "print": "数字运算:"
+        },
+        {
+          "var.set": {
+            "result": {
+              "math.add": [10, 20, 30]
+            }
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "10 + 20 + 30 = ",
+              {
+                "var": "result"
+              }
+            ]
+          }
+        },
+        {
+          "var.set": {
+            "result": {
+              "math.subtract": [100, 20, 30]
+            }
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "100 - 20 - 30 = ",
+              {
+                "var": "result"
+              }
+            ]
+          }
+        },
+        {
+          "var.set": {
+            "result": {
+              "math.multiply": [5, 4, 3]
+            }
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "5 * 4 * 3 = ",
+              {
+                "var": "result"
+              }
+            ]
+          }
+        },
+        {
+          "var.set": {
+            "result": {
+              "math.divide": [120, 4, 3]
+            }
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "120 / 4 / 3 = ",
+              {
+                "var": "result"
+              }
+            ]
+          }
+        },
+        {
+          "var.set": {
+            "result": {
+              "math.modulo": {
+                "dividend": 17,
+                "divisor": 5
+              }
+            }
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "17 % 5 = ",
+              {
+                "var": "result"
+              }
+            ]
+          }
+        },
+        {
+          "print": "弱类型运算:"
+        },
+        {
+          "var.set": {
+            "result": {
+              "math.add": ["Hello, ", "World!"]
+            }
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "\"Hello, \" + \"World!\" = ",
+              {
+                "var": "result"
+              }
+            ]
+          }
+        },
+        {
+          "var.set": {
+            "result": {
+              "math.add": [10, "20"]
+            }
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "10 + \"20\" = ",
+              {
+                "var": "result"
+              }
+            ]
+          }
+        },
+        {
+          "var.set": {
+            "result": {
+              "math.multiply": ["Hi", 3]
+            }
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "\"Hi\" * 3 = ",
+              {
+                "var": "result"
+              }
+            ]
+          }
+        },
+        {
+          "var.set": {
+            "result": {
+              "math.divide": ["apple,orange,banana", ","]
+            }
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "\"apple,orange,banana\" / \",\" = ",
+              {
+                "var": "result"
+              }
+            ]
+          }
+        },
+        {
+          "print": "------------------------------"
+        },
+        {
+          "print": "3. 数组和对象操作"
+        },
+        {
+          "var.set": {
+            "arr1": [1, 2, 3],
+            "arr2": [4, 5, 6]
+          }
+        },
+        {
+          "var.set": {
+            "result": {
+              "math.add": [
+                {
+                  "var": "arr1"
+                },
+                {
+                  "var": "arr2"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "[1,2,3] + [4,5,6] = ",
+              {
+                "var": "result"
+              }
+            ]
+          }
+        },
+        {
+          "var.set": {
+            "obj1": {
+              "name": "张三",
+              "age": 30
+            },
+            "obj2": {
+              "city": "北京",
+              "job": "工程师"
+            }
+          }
+        },
+        {
+          "var.set": {
+            "result": {
+              "math.add": [
+                {
+                  "var": "obj1"
+                },
+                {
+                  "var": "obj2"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "合并对象: ",
+              {
+                "var": "result"
+              }
+            ]
+          }
+        },
+        {
+          "print": "------------------------------"
+        },
+        {
+          "print": "4. 比较操作"
+        },
+        {
+          "var.set": {
+            "result": {
+              "math.compare": {
+                "left": 10,
+                "right": "10",
+                "operator": "=="
+              }
+            }
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "10 == \"10\" 结果: ",
+              {
+                "var": "result"
+              }
+            ]
+          }
+        },
+        {
+          "var.set": {
+            "result": {
+              "math.compare": {
+                "left": 10,
+                "right": 5,
+                "operator": ">"
+              }
+            }
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "10 > 5 结果: ",
+              {
+                "var": "result"
+              }
+            ]
+          }
+        },
+        {
+          "var.set": {
+            "result": {
+              "math.compare": {
+                "left": "apple",
+                "right": "banana",
+                "operator": "<"
+              }
+            }
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "\"apple\" < \"banana\" 结果: ",
+              {
+                "var": "result"
+              }
+            ]
+          }
+        },
+        {
+          "print": "------------------------------"
+        },
+        {
+          "print": "5. 在控制流中使用"
+        },
+        {
+          "var.set": {
+            "value": "123"
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "type.number": {
+                "var": "value"
+              }
+            },
+            "then": {
+              "print": "字符串\"123\"可以转换为数字"
+            },
+            "else": {
+              "print": "字符串\"123\"不能转换为数字"
+            }
+          }
+        },
+        {
+          "var.set": {
+            "value": "abc"
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "type.number": {
+                "var": "value"
+              }
+            },
+            "then": {
+              "print": "字符串\"abc\"可以转换为数字"
+            },
+            "else": {
+              "print": "字符串\"abc\"不能转换为数字"
+            }
+          }
+        },
+        {
+          "print": "------------------------------"
+        },
+        {
+          "print": "弱类型系统演示完成"
+        },
+        {
+          "return": "演示完成"
+        }
+      ]
+    }
+  }
+} 

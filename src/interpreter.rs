@@ -8,23 +8,37 @@ use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
+/// 解释器，负责执行NeoJiLang代码
 pub struct Interpreter {
     pub(crate) variables: HashMap<String, Value>,
-    returning: bool,
-    module_registry: BuiltinModuleRegistry,
+    pub(crate) statement_handlers: HashMap<String, Box<dyn StatementHandler>>,
+    pub(crate) builtin_modules: BuiltinModuleRegistry,
+    pub(crate) returning: Option<Value>,
     loaded_modules: HashSet<String>,
     current_dir: Option<PathBuf>,
 }
 
 impl Interpreter {
+    /// 创建一个新的解释器实例
     pub fn new() -> Self {
-        Interpreter {
+        Self {
             variables: HashMap::new(),
-            returning: false,
-            module_registry: BuiltinModuleRegistry::new(),
+            statement_handlers: HashMap::new(),
+            builtin_modules: BuiltinModuleRegistry::new(),
+            returning: None,
             loaded_modules: HashSet::new(),
             current_dir: None,
         }
+    }
+
+    /// 创建一个新的干净的解释器实例，但保留变量
+    pub fn create_clean_instance(&self) -> Self {
+        let mut new_instance = Self::new();
+        // 复制变量
+        for (key, value) in &self.variables {
+            new_instance.variables.insert(key.clone(), value.clone());
+        }
+        new_instance
     }
 
     pub fn load_file<P: AsRef<Path>>(&mut self, path: P) -> Result<NjilProgram, NjilError> {
@@ -86,7 +100,7 @@ impl Interpreter {
         
         // 获取并存储模块中的所有处理器
         let handlers = {
-            let module = self.module_registry.get_module(&module_name_owned)
+            let module = self.builtin_modules.get_module(&module_name_owned)
                 .ok_or_else(|| NjilError::ExecutionError(format!("找不到内置模块: {}", module_name_owned)))?;
             
             // 获取模块中的所有处理器
@@ -110,7 +124,7 @@ impl Interpreter {
     /// 初始化模块（分离出来以避免借用冲突）
     fn initialize_module(&mut self, module_name: &str) -> Result<(), NjilError> {
         // 获取初始化函数并执行
-        if let Some(module) = self.module_registry.get_module(module_name) {
+        if let Some(module) = self.builtin_modules.get_module(module_name) {
             let init_fn = module.initialize();
             init_fn(self)?;
         }
@@ -121,7 +135,7 @@ impl Interpreter {
     /// 导入所有内置模块（用于NJIS）
     pub fn import_all_builtin_modules(&mut self) -> Result<(), NjilError> {
         // 获取所有模块名称的副本，避免借用冲突
-        let module_names: Vec<String> = self.module_registry.get_module_names()
+        let module_names: Vec<String> = self.builtin_modules.get_module_names()
             .iter().map(|&s| s.clone()).collect();
         
         // 逐个导入模块
@@ -137,8 +151,9 @@ impl Interpreter {
             match self.execute_statement(statement) {
                 Ok(_) => {},
                 Err(NjilError::ReturnValue(value)) => {
-                    self.returning = true;
-                    return Ok(value);
+                    let value_clone = value.clone();
+                    self.returning = Some(value);
+                    return Ok(value_clone);
                 }
                 Err(e) => return Err(e),
             }
@@ -199,68 +214,40 @@ impl Interpreter {
         Ok(result)
     }
 
-    pub fn value_to_string(&self, value: &Value) -> String {
+    pub fn value_to_string(&mut self, value: &Value) -> String {
         match value {
             Value::String(s) => s.clone(),
             Value::Number(n) => n.to_string(),
             Value::Bool(b) => b.to_string(),
             Value::Null => "null".to_string(),
             Value::Array(arr) => {
-                let mut result = String::new();
-                for (i, item) in arr.iter().enumerate() {
-                    if i > 0 {
-                        result.push(' ');
-                    }
-                    result.push_str(&self.value_to_string(item));
-                }
-                result
+                let items: Vec<String> = arr
+                    .iter()
+                    .map(|v| self.value_to_string(v))
+                    .collect();
+                format!("[{}]", items.join(", "))
             }
             Value::Object(obj) => {
-                // 检查是否是json.new创建的特殊格式
-                if obj.contains_key("type") && obj.contains_key("value") && obj.len() == 2 {
-                    // 这是json.new创建的值，直接返回value字段的内容
-                    if let Some(val_type) = obj.get("type") {
-                        if let Some(val) = obj.get("value") {
-                            if let Value::String(type_str) = val_type {
-                                match type_str.as_str() {
-                                    "number" => {
-                                        if let Value::Number(n) = val {
-                                            return n.to_string();
-                                        }
-                                    },
-                                    "string" => {
-                                        if let Value::String(s) = val {
-                                            return s.clone();
-                                        }
-                                    },
-                                    "boolean" => {
-                                        if let Value::Bool(b) = val {
-                                            return b.to_string();
-                                        }
-                                    },
-                                    _ => {}
-                                }
+                // 尝试执行算术运算或比较运算
+                match self.execute_operation(value) {
+                    Ok(result) if result != *value => {
+                        // 如果执行成功且结果不同于原值，返回结果的字符串表示
+                        return self.value_to_string(&result);
+                    }
+                    _ => {
+                        // 尝试将对象序列化为JSON字符串
+                        match serde_json::to_string(obj) {
+                            Ok(json) => json,
+                            Err(_) => {
+                                // 如果序列化失败，使用简单的键值对格式
+                                let pairs: Vec<String> = obj
+                                    .iter()
+                                    .map(|(k, v)| format!("{}: {}", k, self.value_to_string(v)))
+                                    .collect();
+                                format!("{{{}}}", pairs.join(", "))
                             }
-                            // 如果类型不匹配或无法处理，尝试直接返回值
-                            return self.value_to_string(val);
                         }
                     }
-                }
-                
-                // 对于普通对象类型，序列化为JSON字符串
-                if let Ok(json_str) = serde_json::to_string(obj) {
-                    json_str
-                } else {
-                    // 如果序列化失败，使用简单的键值对表示
-                    let mut result = String::from("{");
-                    for (i, (key, val)) in obj.iter().enumerate() {
-                        if i > 0 {
-                            result.push_str(", ");
-                        }
-                        result.push_str(&format!("\"{}\": {}", key, self.value_to_string(val)));
-                    }
-                    result.push('}');
-                    result
                 }
             }
         }
@@ -278,12 +265,35 @@ impl Interpreter {
     
     /// 检查是否正在返回
     pub fn is_returning(&self) -> bool {
-        self.returning
+        self.returning.is_some()
     }
     
     /// 设置返回状态
     pub fn set_returning(&mut self, returning: bool) {
-        self.returning = returning;
+        self.returning = if returning { Some(Value::Null) } else { None };
+    }
+
+    /// 执行算术运算或比较运算，直接获取结果
+    pub fn execute_operation(&mut self, value: &Value) -> Result<Value, NjilError> {
+        if let Value::Object(obj) = value {
+            if obj.len() == 1 {
+                let (key, _val) = obj.iter().next().unwrap();
+                
+                // 检查是否是算术运算或比较运算
+                if key.starts_with("math.") || 
+                   key == "add" || key == "subtract" || key == "sub" || 
+                   key == "multiply" || key == "mul" || key == "divide" || 
+                   key == "div" || key == "modulo" || key == "mod" || 
+                   key == "compare" || key == "cmp" {
+                    
+                    // 尝试执行操作
+                    return self.execute_statement(value);
+                }
+            }
+        }
+        
+        // 如果不是操作或执行失败，返回原值
+        Ok(value.clone())
     }
 }
 

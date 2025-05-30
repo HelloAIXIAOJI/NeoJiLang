@@ -12,6 +12,8 @@ pub mod return_stmt;
 pub mod json;
 pub mod control_flow;
 pub mod logic;
+pub mod type_convert;
+pub mod arithmetic;
 
 use print::PRINT_HANDLER;
 use string::STRING_CONCAT_HANDLER;
@@ -31,6 +33,8 @@ use logic::{
     LOGIC_OR_HANDLER,
     LOGIC_NOT_HANDLER,
 };
+use type_convert::{TYPE_CONVERT_HANDLER, TO_BOOL_HANDLER, TO_NUMBER_HANDLER, TO_STRING_HANDLER, TO_ARRAY_HANDLER, TO_OBJECT_HANDLER, TYPE_OF_HANDLER};
+use arithmetic::{ADD_HANDLER, SUBTRACT_HANDLER, MULTIPLY_HANDLER, DIVIDE_HANDLER, MODULO_HANDLER, COMPARE_HANDLER};
 
 /// 语句处理器特性
 pub trait StatementHandler: Send + Sync {
@@ -58,14 +62,14 @@ impl StatementRegistry {
             handlers: HashMap::new(),
         };
         
-        // 注册内置语句处理器
+        // 注册核心语句处理器
         registry.register_handler(&PRINT_HANDLER);
-        registry.register_handler(&STRING_CONCAT_HANDLER);
         registry.register_handler(&VAR_HANDLER);
         registry.register_handler(&VAR_SET_HANDLER);
         registry.register_handler(&RETURN_HANDLER);
+        registry.register_handler(&STRING_CONCAT_HANDLER);
         
-        // 注册JSON相关语句处理器
+        // 注册JSON语句处理器
         registry.register_handler(&JSON_NEW_HANDLER);
         registry.register_handler(&JSON_GET_HANDLER);
         registry.register_handler(&JSON_SET_HANDLER);
@@ -82,6 +86,23 @@ impl StatementRegistry {
         registry.register_handler(&LOGIC_AND_HANDLER);
         registry.register_handler(&LOGIC_OR_HANDLER);
         registry.register_handler(&LOGIC_NOT_HANDLER);
+        
+        // 注册类型转换语句处理器
+        registry.register_handler(&TYPE_CONVERT_HANDLER);
+        registry.register_handler(&TO_BOOL_HANDLER);
+        registry.register_handler(&TO_NUMBER_HANDLER);
+        registry.register_handler(&TO_STRING_HANDLER);
+        registry.register_handler(&TO_ARRAY_HANDLER);
+        registry.register_handler(&TO_OBJECT_HANDLER);
+        registry.register_handler(&TYPE_OF_HANDLER);
+        
+        // 注册算术运算语句处理器
+        registry.register_handler(&ADD_HANDLER);
+        registry.register_handler(&SUBTRACT_HANDLER);
+        registry.register_handler(&MULTIPLY_HANDLER);
+        registry.register_handler(&DIVIDE_HANDLER);
+        registry.register_handler(&MODULO_HANDLER);
+        registry.register_handler(&COMPARE_HANDLER);
         
         registry
     }

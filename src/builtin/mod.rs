@@ -22,7 +22,7 @@ pub trait BuiltinModule {
 
 /// 内置模块注册表，用于管理和查找内置模块
 pub struct BuiltinModuleRegistry {
-    modules: HashMap<String, Box<dyn BuiltinModule>>,
+    modules: HashMap<String, Box<dyn BuiltinModule + Send + Sync>>,
 }
 
 impl BuiltinModuleRegistry {
@@ -39,18 +39,25 @@ impl BuiltinModuleRegistry {
     }
     
     /// 注册一个内置模块
-    pub fn register_module(&mut self, module: Box<dyn BuiltinModule>) {
+    pub fn register_module(&mut self, module: Box<dyn BuiltinModule + Send + Sync>) {
         let name = module.name().to_string();
         self.modules.insert(name, module);
     }
     
     /// 获取指定名称的内置模块
-    pub fn get_module(&self, name: &str) -> Option<&Box<dyn BuiltinModule>> {
+    pub fn get_module(&self, name: &str) -> Option<&Box<dyn BuiltinModule + Send + Sync>> {
         self.modules.get(name)
     }
     
     /// 获取所有内置模块的名称
     pub fn get_module_names(&self) -> Vec<&String> {
         self.modules.keys().collect()
+    }
+
+    /// 创建一个空的注册表副本（不包含模块）
+    pub fn clone_empty(&self) -> Self {
+        Self {
+            modules: HashMap::new(),
+        }
     }
 } 

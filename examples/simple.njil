@@ -1,0 +1,27 @@
+{
+  "import": [
+    "!io"
+  ],
+  "program": {
+    "main": {
+      "body": [
+        {
+          "print": "Hello, NJIL!"
+        },
+        {
+          "var.set": {
+            "message": "这是一个测试消息"
+          }
+        },
+        {
+          "print": {
+            "var": "message"
+          }
+        },
+        {
+          "return": "测试成功"
+        }
+      ]
+    }
+  }
+} 
