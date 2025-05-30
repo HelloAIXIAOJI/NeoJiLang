@@ -10,7 +10,7 @@ use crate::interpreter::Interpreter;
 /// 从.njis文件加载并执行脚本
 pub fn run_njis_file<P: AsRef<Path>>(file_path: P) -> Result<Value, NjilError> {
     // 读取文件内容
-    let content = fs::read_to_string(file_path)
+    let content = fs::read_to_string(file_path.as_ref())
         .map_err(|e| NjilError::IoError(e))?;
     
     // 解析NJIS文件内容
@@ -31,8 +31,15 @@ pub fn run_njis_file<P: AsRef<Path>>(file_path: P) -> Result<Value, NjilError> {
     let mut result = Value::Null;
     
     if let Value::Array(statements) = statements {
-        for statement in statements {
-            result = interpreter.evaluate_value(&statement)?;
+        for statement in statements.iter() {
+            match interpreter.evaluate_value(statement) {
+                Ok(value) => {
+                    result = value;
+                },
+                Err(e) => {
+                    return Err(e);
+                }
+            }
             
             // 如果遇到返回语句，提前结束执行
             if interpreter.is_returning() {
@@ -64,8 +71,15 @@ pub fn run_njis_str(content: &str) -> Result<Value, NjilError> {
     let mut result = Value::Null;
     
     if let Value::Array(statements) = statements {
-        for statement in statements {
-            result = interpreter.evaluate_value(&statement)?;
+        for statement in statements.iter() {
+            match interpreter.evaluate_value(statement) {
+                Ok(value) => {
+                    result = value;
+                },
+                Err(e) => {
+                    return Err(e);
+                }
+            }
             
             // 如果遇到返回语句，提前结束执行
             if interpreter.is_returning() {

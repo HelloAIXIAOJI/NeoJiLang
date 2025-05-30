@@ -1,0 +1,417 @@
+[
+  {
+    "print": "NeoJiLang 逻辑运算演示"
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "1. 逻辑与(logic.and)演示"
+  },
+  {
+    "var.set": {
+      "a": true,
+      "b": true,
+      "c": false
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "a = ",
+        {
+          "var": "a"
+        },
+        ", b = ",
+        {
+          "var": "b"
+        },
+        ", c = ",
+        {
+          "var": "c"
+        }
+      ]
+    }
+  },
+  {
+    "print": "a && b 的结果："
+  },
+  {
+    "var.set": {
+      "result": {
+        "logic.and": [
+          {
+            "var": "a"
+          },
+          {
+            "var": "b"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "print": {
+      "var": "result"
+    }
+  },
+  {
+    "print": "a && c 的结果："
+  },
+  {
+    "var.set": {
+      "result": {
+        "logic.and": [
+          {
+            "var": "a"
+          },
+          {
+            "var": "c"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "print": {
+      "var": "result"
+    }
+  },
+  {
+    "print": "短路求值演示："
+  },
+  {
+    "var.set": {
+      "executed": false
+    }
+  },
+  {
+    "var.set": {
+      "result": {
+        "logic.and": [
+          {
+            "var": "c"
+          },
+          {
+            "var.set": {
+              "executed": true
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "结果: ",
+        {
+          "var": "result"
+        },
+        ", executed = ",
+        {
+          "var": "executed"
+        },
+        " (应为false，表示第二个操作数未执行)"
+      ]
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "2. 逻辑或(logic.or)演示"
+  },
+  {
+    "print": "a || c 的结果："
+  },
+  {
+    "var.set": {
+      "result": {
+        "logic.or": [
+          {
+            "var": "a"
+          },
+          {
+            "var": "c"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "print": {
+      "var": "result"
+    }
+  },
+  {
+    "print": "c || c 的结果："
+  },
+  {
+    "var.set": {
+      "result": {
+        "logic.or": [
+          {
+            "var": "c"
+          },
+          {
+            "var": "c"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "print": {
+      "var": "result"
+    }
+  },
+  {
+    "print": "短路求值演示："
+  },
+  {
+    "var.set": {
+      "executed": false
+    }
+  },
+  {
+    "var.set": {
+      "result": {
+        "logic.or": [
+          {
+            "var": "a"
+          },
+          {
+            "var.set": {
+              "executed": true
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "结果: ",
+        {
+          "var": "result"
+        },
+        ", executed = ",
+        {
+          "var": "executed"
+        },
+        " (应为false，表示第二个操作数未执行)"
+      ]
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "3. 逻辑非(logic.not)演示"
+  },
+  {
+    "print": "!a 的结果："
+  },
+  {
+    "var.set": {
+      "result": {
+        "logic.not": {
+          "var": "a"
+        }
+      }
+    }
+  },
+  {
+    "print": {
+      "var": "result"
+    }
+  },
+  {
+    "print": "!c 的结果："
+  },
+  {
+    "var.set": {
+      "result": {
+        "logic.not": {
+          "var": "c"
+        }
+      }
+    }
+  },
+  {
+    "print": {
+      "var": "result"
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "4. 复杂逻辑表达式"
+  },
+  {
+    "print": "(a && !c) || (b && c) 的结果："
+  },
+  {
+    "var.set": {
+      "result": {
+        "logic.or": [
+          {
+            "logic.and": [
+              {
+                "var": "a"
+              },
+              {
+                "logic.not": {
+                  "var": "c"
+                }
+              }
+            ]
+          },
+          {
+            "logic.and": [
+              {
+                "var": "b"
+              },
+              {
+                "var": "c"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "print": {
+      "var": "result"
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "5. 与控制流结合使用"
+  },
+  {
+    "if": {
+      "condition": {
+        "logic.and": [
+          {
+            "var": "a"
+          },
+          {
+            "logic.not": {
+              "var": "c"
+            }
+          }
+        ]
+      },
+      "then": {
+        "print": "条件 (a && !c) 为真，执行then分支"
+      },
+      "else": {
+        "print": "条件 (a && !c) 为假，执行else分支"
+      }
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "6. 其他数据类型的逻辑判断"
+  },
+  {
+    "var.set": {
+      "emptyString": "",
+      "nonEmptyString": "hello",
+      "zeroNumber": 0,
+      "nonZeroNumber": 42,
+      "emptyArray": [],
+      "nonEmptyArray": [1, 2, 3]
+    }
+  },
+  {
+    "print": "空字符串的逻辑值："
+  },
+  {
+    "print": {
+      "logic.not": {
+        "logic.not": {
+          "var": "emptyString"
+        }
+      }
+    }
+  },
+  {
+    "print": "非空字符串的逻辑值："
+  },
+  {
+    "print": {
+      "logic.not": {
+        "logic.not": {
+          "var": "nonEmptyString"
+        }
+      }
+    }
+  },
+  {
+    "print": "数字0的逻辑值："
+  },
+  {
+    "print": {
+      "logic.not": {
+        "logic.not": {
+          "var": "zeroNumber"
+        }
+      }
+    }
+  },
+  {
+    "print": "非零数字的逻辑值："
+  },
+  {
+    "print": {
+      "logic.not": {
+        "logic.not": {
+          "var": "nonZeroNumber"
+        }
+      }
+    }
+  },
+  {
+    "print": "空数组的逻辑值："
+  },
+  {
+    "print": {
+      "logic.not": {
+        "logic.not": {
+          "var": "emptyArray"
+        }
+      }
+    }
+  },
+  {
+    "print": "非空数组的逻辑值："
+  },
+  {
+    "print": {
+      "logic.not": {
+        "logic.not": {
+          "var": "nonEmptyArray"
+        }
+      }
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "逻辑运算演示完成"
+  },
+  {
+    "return": "演示完成"
+  }
+] 

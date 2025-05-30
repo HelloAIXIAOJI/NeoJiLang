@@ -88,4 +88,27 @@ pub mod control_flow {
     pub fn collection_requires_array_or_object() -> &'static str {
         "foreach循环的集合必须是数组或对象"
     }
+}
+
+/// 逻辑运算相关错误
+pub mod logic {
+    /// 逻辑与操作参数类型错误
+    pub fn and_requires_array() -> &'static str {
+        "逻辑与操作需要一个数组参数"
+    }
+    
+    /// 逻辑与操作操作数不足错误
+    pub fn and_requires_operands() -> &'static str {
+        "逻辑与操作需要至少一个操作数"
+    }
+    
+    /// 逻辑或操作参数类型错误
+    pub fn or_requires_array() -> &'static str {
+        "逻辑或操作需要一个数组参数"
+    }
+    
+    /// 逻辑或操作操作数不足错误
+    pub fn or_requires_operands() -> &'static str {
+        "逻辑或操作需要至少一个操作数"
+    }
 } 

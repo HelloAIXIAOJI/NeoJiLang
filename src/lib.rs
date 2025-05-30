@@ -5,6 +5,7 @@ pub mod statements;
 pub mod errortip;
 pub mod njis;
 pub mod builtin;
+pub mod utils;
 
 use std::path::Path;
 

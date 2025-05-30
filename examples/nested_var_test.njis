@@ -1,0 +1,39 @@
+[
+  {"print": "开始测试嵌套变量访问"},
+  
+  {"var.set": {
+    "person": {
+      "name": "张三",
+      "age": 30,
+      "address": {
+        "city": "北京",
+        "district": "海淀"
+      },
+      "skills": ["编程", "绘画", "音乐"]
+    }
+  }},
+  
+  {"print": ["整个对象: ", {"var": "person"}]},
+  
+  {"print": ["姓名: ", {"var": "person.name"}]},
+  {"print": ["年龄: ", {"var": "person.age"}]},
+  {"print": ["城市: ", {"var": "person.address.city"}]},
+  {"print": ["区域: ", {"var": "person.address.district"}]},
+  
+  {"print": ["第一个技能: ", {"var": "person.skills[0]"}]},
+  {"print": ["第二个技能: ", {"var": "person.skills[1]"}]},
+  {"print": ["第三个技能: ", {"var": "person.skills[2]"}]},
+  
+  {"var.set": {
+    "person.name": "李四",
+    "person.address.city": "上海",
+    "person.skills[1]": "摄影"
+  }},
+  
+  {"print": "\n修改后的数据:"},
+  {"print": ["姓名: ", {"var": "person.name"}]},
+  {"print": ["城市: ", {"var": "person.address.city"}]},
+  {"print": ["第二个技能: ", {"var": "person.skills[1]"}]},
+  
+  "测试完成"
+] 

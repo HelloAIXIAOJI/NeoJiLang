@@ -1,0 +1,224 @@
+[
+  {
+    "print": "NeoJiLang JSON嵌套路径测试"
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "1. 创建测试JSON对象"
+  },
+  {
+    "var.set": {
+      "testJson": {
+        "name": "测试对象",
+        "properties": {
+          "color": "红色",
+          "size": 10
+        },
+        "items": ["项目1", "项目2", "项目3"]
+      }
+    }
+  },
+  {
+    "print": {
+      "var": "testJson"
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "2. 使用json.get访问嵌套路径"
+  },
+  {
+    "print": {
+      "string.concat": [
+        "对象名称: ",
+        {
+          "json.get": {
+            "object": {
+              "var": "testJson"
+            },
+            "key": "name"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "颜色属性: ",
+        {
+          "json.get": {
+            "object": {
+              "var": "testJson"
+            },
+            "key": "properties.color"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "第二个项目: ",
+        {
+          "json.get": {
+            "object": {
+              "var": "testJson"
+            },
+            "key": "items[1]"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "3. 使用json.set设置嵌套路径"
+  },
+  {
+    "var.set": {
+      "updatedJson": {
+        "json.set": {
+          "object": {
+            "var": "testJson"
+          },
+          "key": "properties.weight",
+          "value": 25
+        }
+      }
+    }
+  },
+  {
+    "print": "添加了weight属性:"
+  },
+  {
+    "print": {
+      "json.get": {
+        "object": {
+          "var": "updatedJson"
+        },
+        "key": "properties"
+      }
+    }
+  },
+  {
+    "var.set": {
+      "finalJson": {
+        "json.set": {
+          "object": {
+            "var": "updatedJson"
+          },
+          "key": "items[2]",
+          "value": "更新的项目3"
+        }
+      }
+    }
+  },
+  {
+    "print": "更新了第3个项目:"
+  },
+  {
+    "print": {
+      "json.get": {
+        "object": {
+          "var": "finalJson"
+        },
+        "key": "items"
+      }
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "4. 创建复杂嵌套结构"
+  },
+  {
+    "var.set": {
+      "emptyJson": {
+        "json.new": null
+      }
+    }
+  },
+  {
+    "var.set": {
+      "complexJson": {
+        "json.set": {
+          "object": {
+            "var": "emptyJson"
+          },
+          "key": "company.departments[0].name",
+          "value": "研发部"
+        }
+      }
+    }
+  },
+  {
+    "print": "创建了部门结构:"
+  },
+  {
+    "print": {
+      "var": "complexJson"
+    }
+  },
+  {
+    "var.set": {
+      "complexJson": {
+        "json.set": {
+          "object": {
+            "var": "complexJson"
+          },
+          "key": "company.departments[0].employees[0]",
+          "value": {
+            "name": "张三",
+            "position": "工程师"
+          }
+        }
+      }
+    }
+  },
+  {
+    "print": "添加了员工:"
+  },
+  {
+    "print": {
+      "var": "complexJson"
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "员工姓名: ",
+        {
+          "var": "complexJson.company.departments[0].employees[0].name"
+        }
+      ]
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "员工职位: ",
+        {
+          "var": "complexJson.company.departments[0].employees[0].position"
+        }
+      ]
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "JSON嵌套路径测试完成"
+  },
+  {
+    "return": "测试完成"
+  }
+] 

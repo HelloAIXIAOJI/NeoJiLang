@@ -1,0 +1,48 @@
+[
+  {
+    "print": "嵌套路径调试测试"
+  },
+  {
+    "var.set": {
+      "company": {
+        "departments": [
+          {
+            "name": "研发部"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "print": {
+      "var": "company"
+    }
+  },
+  {
+    "print": "尝试访问 company.departments"
+  },
+  {
+    "print": {
+      "var": "company.departments"
+    }
+  },
+  {
+    "print": "尝试访问 company.departments[0]"
+  },
+  {
+    "print": {
+      "var": "company.departments[0]"
+    }
+  },
+  {
+    "print": "尝试访问 company.departments[0].name"
+  },
+  {
+    "print": {
+      "var": "company.departments[0].name"
+    }
+  },
+  {
+    "return": "测试完成"
+  }
+] 

@@ -1,6 +1,7 @@
 use crate::error::NjilError;
 use crate::types::{Function, NjilProgram};
 use crate::statements;
+use crate::statements::StatementHandler;
 use crate::builtin::BuiltinModuleRegistry;
 use serde_json::Value;
 use std::collections::{HashMap, HashSet};
@@ -154,8 +155,21 @@ impl Interpreter {
     pub fn evaluate_value(&mut self, value: &Value) -> Result<Value, NjilError> {
         match value {
             Value::String(_) => Ok(value.clone()),
-            Value::Object(_) => {
+            Value::Object(obj) => {
                 // 如果是对象，尝试执行它
+                if obj.len() == 1 {
+                    let (key, value) = obj.iter().next().unwrap();
+                    
+                    // 特殊处理嵌套变量路径的情况
+                    if key == "var" && value.is_string() {
+                        if let Value::String(var_path) = value {
+                            if var_path.contains('.') || var_path.contains('[') {
+                                return statements::var::VAR_HANDLER.handle(self, value);
+                            }
+                        }
+                    }
+                }
+                
                 self.execute_statement(value)
             }
             Value::Array(_) => Ok(value.clone()),

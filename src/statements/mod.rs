@@ -11,6 +11,7 @@ pub mod var;
 pub mod return_stmt;
 pub mod json;
 pub mod control_flow;
+pub mod logic;
 
 use print::PRINT_HANDLER;
 use string::STRING_CONCAT_HANDLER;
@@ -24,6 +25,11 @@ use control_flow::{
     FOREACH_LOOP_HANDLER,
     BREAK_HANDLER,
     CONTINUE_HANDLER,
+};
+use logic::{
+    LOGIC_AND_HANDLER,
+    LOGIC_OR_HANDLER,
+    LOGIC_NOT_HANDLER,
 };
 
 /// 语句处理器特性
@@ -72,6 +78,11 @@ impl StatementRegistry {
         registry.register_handler(&BREAK_HANDLER);
         registry.register_handler(&CONTINUE_HANDLER);
         
+        // 注册逻辑运算语句处理器
+        registry.register_handler(&LOGIC_AND_HANDLER);
+        registry.register_handler(&LOGIC_OR_HANDLER);
+        registry.register_handler(&LOGIC_NOT_HANDLER);
+        
         registry
     }
     
@@ -114,6 +125,17 @@ pub fn handle_statement(interpreter: &mut Interpreter, statement: &Value) -> Res
         if obj.len() == 1 {
             let (key, value) = obj.iter().next().unwrap();
             
+            // 检查是否为变量访问
+            if key == "var" && value.is_string() {
+                if let Value::String(var_path) = value {
+                    // 特殊处理嵌套变量路径
+                    if var_path.contains('.') || var_path.contains('[') {
+                        // 使用 VarHandler 处理嵌套变量路径
+                        return VAR_HANDLER.handle(interpreter, value);
+                    }
+                }
+            }
+            
             // 获取语句处理器
             let handler: Option<&'static dyn StatementHandler> = {
                 if let Ok(registry) = get_registry().lock() {
@@ -125,6 +147,25 @@ pub fn handle_statement(interpreter: &mut Interpreter, statement: &Value) -> Res
             
             if let Some(handler) = handler {
                 return handler.handle(interpreter, value);
+            }
+            
+            // 如果找不到处理器，检查是否是嵌套变量路径的一部分
+            if key.contains('.') || key.contains('[') {
+                // 尝试解析为变量路径
+                let parts: Vec<&str> = key.split('.').collect();
+                if parts.len() > 1 {
+                    // 检查第一部分是否是变量
+                    let base_var = parts[0];
+                    
+                    if interpreter.variables.contains_key(base_var) {
+                        // 这可能是一个嵌套变量访问，而不是未知指令
+                        // 将其转换为正确的变量访问形式
+                        let mut var_obj = serde_json::Map::new();
+                        var_obj.insert("var".to_string(), Value::String(key.to_string()));
+                        let var_statement = Value::Object(var_obj);
+                        return interpreter.evaluate_value(&var_statement);
+                    }
+                }
             }
             
             return Err(NjilError::ExecutionError(errortip::unknown_instruction(key)));

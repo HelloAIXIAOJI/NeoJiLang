@@ -2,6 +2,7 @@ use crate::error::NjilError;
 use serde_json::{Value, Map};
 use crate::interpreter::Interpreter;
 use super::StatementHandler;
+use crate::utils::path;
 
 /// JSON新建语句处理器
 pub struct JsonNewHandler;
@@ -83,6 +84,49 @@ impl StatementHandler for JsonGetHandler {
                 ));
             };
             
+            // 处理嵌套路径
+            if let Value::String(path_str) = &key {
+                if path_str.contains('.') || path_str.contains('[') {
+                    // 解析路径
+                    let path_parts = path::parse_path(path_str)?;
+                    
+                    // 获取基础属性
+                    let base_prop = match &path_parts[0] {
+                        path::PathPart::ObjectProperty(name) => name,
+                        _ => return Err(NjilError::ExecutionError("路径不能以数组索引开始".to_string())),
+                    };
+                    
+                    // 检查基础属性是否存在
+                    if let Value::Object(map) = &json_obj {
+                        if !map.contains_key(base_prop) {
+                            return Ok(Value::Null);
+                        }
+                        
+                        // 从基础属性继续访问嵌套路径
+                        if path_parts.len() > 1 {
+                            // 获取基础属性值
+                            let base_value = map.get(base_prop).unwrap();
+                            
+                            // 使用通用路径访问方法获取嵌套值
+                            match path::get_nested_value(base_value, &path_parts[1..]) {
+                                Ok(nested_value) => return Ok(nested_value.clone()),
+                                Err(_) => return Ok(Value::Null), // 如果路径不存在，返回null
+                            }
+                        } else {
+                            // 如果只有基础属性，直接返回其值
+                            return Ok(map.get(base_prop).unwrap().clone());
+                        }
+                    } else if let Value::Array(_arr) = &json_obj {
+                        // 不支持对数组使用嵌套路径
+                        return Err(NjilError::ExecutionError(
+                            "不支持对数组使用嵌套路径".to_string()
+                        ));
+                    } else {
+                        return Ok(Value::Null);
+                    }
+                }
+            }
+            
             match (&json_obj, &key) {
                 // 处理对象属性访问
                 (Value::Object(map), Value::String(key_str)) => {
@@ -131,13 +175,16 @@ impl StatementHandler for JsonSetHandler {
     fn handle(&self, interpreter: &mut Interpreter, value: &Value) -> Result<Value, NjilError> {
         if let Value::Object(obj) = value {
             // 获取JSON对象
-            let mut json_obj = if let Some(obj_value) = obj.get("object") {
+            let json_obj = if let Some(obj_value) = obj.get("object") {
                 interpreter.evaluate_value(obj_value)?
             } else {
                 return Err(NjilError::ExecutionError(
                     "json.set 缺少 'object' 参数".to_string()
                 ));
             };
+            
+            // 创建一个新的JSON对象，避免修改原对象
+            let mut result_obj = json_obj.clone();
             
             // 获取键或索引
             let key = if let Some(key_value) = obj.get("key") {
@@ -157,11 +204,27 @@ impl StatementHandler for JsonSetHandler {
                 ));
             };
             
-            match (&mut json_obj, &key) {
+            // 处理嵌套路径
+            if let Value::String(path_str) = &key {
+                if path_str.contains('.') || path_str.contains('[') {
+                    // 解析路径
+                    let path_parts = path::parse_path(path_str)?;
+                    
+                    // 设置嵌套值
+                    match path::set_json_nested_value(&mut result_obj, &path_parts, set_value.clone()) {
+                        Ok(_) => return Ok(result_obj),
+                        Err(e) => return Err(NjilError::ExecutionError(
+                            format!("设置嵌套路径 {} 失败: {}", path_str, e)
+                        )),
+                    }
+                }
+            }
+            
+            match (&mut result_obj, &key) {
                 // 处理对象属性设置
                 (Value::Object(map), Value::String(key_str)) => {
                     map.insert(key_str.clone(), set_value);
-                    return Ok(json_obj);
+                    return Ok(result_obj);
                 },
                 
                 // 处理数组索引设置
@@ -171,7 +234,7 @@ impl StatementHandler for JsonSetHandler {
                         // 确保索引在范围内
                         if idx_usize < arr.len() {
                             arr[idx_usize] = set_value;
-                            return Ok(json_obj);
+                            return Ok(result_obj);
                         } else {
                             return Err(NjilError::ExecutionError(format!(
                                 "json.set 数组索引越界: 索引 {} 超出数组长度 {}", 
@@ -187,7 +250,7 @@ impl StatementHandler for JsonSetHandler {
                 // 不支持的类型组合
                 _ => return Err(NjilError::ExecutionError(format!(
                     "json.set 不支持的类型组合: 对象类型 {} 和键类型 {}", 
-                    json_obj.to_string(), key.to_string()
+                    result_obj.to_string(), key.to_string()
                 ))),
             }
         }

@@ -1,0 +1,227 @@
+[
+  {
+    "print": "NeoJiLang 嵌套变量路径测试"
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "1. 创建测试数据"
+  },
+  {
+    "var.set": {
+      "person": {
+        "name": "张三",
+        "age": 30,
+        "address": {
+          "city": "北京",
+          "district": "海淀区"
+        },
+        "hobbies": ["阅读", "编程", "旅行"]
+      }
+    }
+  },
+  {
+    "print": {
+      "var": "person"
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "2. 对象嵌套属性访问"
+  },
+  {
+    "print": {
+      "string.concat": [
+        "姓名: ",
+        {
+          "var": "person.name"
+        }
+      ]
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "城市: ",
+        {
+          "var": "person.address.city"
+        }
+      ]
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "3. 数组索引访问"
+  },
+  {
+    "print": {
+      "string.concat": [
+        "第一个爱好: ",
+        {
+          "var": "person.hobbies[0]"
+        }
+      ]
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "第三个爱好: ",
+        {
+          "var": "person.hobbies[2]"
+        }
+      ]
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "4. 嵌套变量设置"
+  },
+  {
+    "var.set": {
+      "person.address.zipcode": "100081"
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "邮编: ",
+        {
+          "var": "person.address.zipcode"
+        }
+      ]
+    }
+  },
+  {
+    "var.set": {
+      "person.hobbies[1]": "写作"
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "修改后的第二个爱好: ",
+        {
+          "var": "person.hobbies[1]"
+        }
+      ]
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "5. 复杂嵌套路径"
+  },
+  {
+    "var.set": {
+      "company": {
+        "departments": [
+          {
+            "name": "研发部",
+            "employees": [
+              {
+                "name": "李四",
+                "position": "工程师"
+              },
+              {
+                "name": "王五",
+                "position": "设计师"
+              }
+            ]
+          },
+          {
+            "name": "市场部",
+            "employees": [
+              {
+                "name": "赵六",
+                "position": "经理"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "研发部第一位员工: ",
+        {
+          "var": "company.departments[0].employees[0].name"
+        },
+        " - ",
+        {
+          "var": "company.departments[0].employees[0].position"
+        }
+      ]
+    }
+  },
+  {
+    "var.set": {
+      "company.departments[1].employees[0].position": "市场总监"
+    }
+  },
+  {
+    "print": {
+      "string.concat": [
+        "更新后的职位: ",
+        {
+          "var": "company.departments[1].employees[0].position"
+        }
+      ]
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "6. 动态创建嵌套结构"
+  },
+  {
+    "var.set": {
+      "dynamic.path.to.value": "这是一个动态创建的嵌套值"
+    }
+  },
+  {
+    "print": {
+      "var": "dynamic.path.to.value"
+    }
+  },
+  {
+    "var.set": {
+      "dynamic.array[0]": "数组的第一个元素"
+    }
+  },
+  {
+    "var.set": {
+      "dynamic.array[1]": "数组的第二个元素"
+    }
+  },
+  {
+    "var.set": {
+      "dynamic.array[2].name": "嵌套对象"
+    }
+  },
+  {
+    "print": {
+      "var": "dynamic"
+    }
+  },
+  {
+    "print": "------------------------------"
+  },
+  {
+    "print": "嵌套变量路径测试完成"
+  },
+  {
+    "return": "测试完成"
+  }
+] 

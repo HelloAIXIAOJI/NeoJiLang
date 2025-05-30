@@ -1,6 +1,6 @@
 [package]
 name = "neo_jilang"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 authors = ["HelloAIXIAOJI", "All NeoJiLang contributors", "All JiLang contributors"]
 description = "一个基于JSON的轻量级脚本语言解释器"
@@ -14,3 +14,5 @@ categories = ["parser-implementations", "command-line-utilities"]
 encoding_rs = "0.8.35"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+regex = "1.10.2"
+lazy_static = "1.4.0"
