@@ -34,12 +34,12 @@ impl StatementHandler for VarSetHandler {
             // 获取变量值
             let var_value = interpreter.evaluate_value(var_obj.get("value").unwrap())?;
             debug_println!("变量 {} 的值为: {}", var_name, serde_json::to_string_pretty(&var_value).unwrap());
-            
-            // 检查是否为嵌套路径
+                
+                // 检查是否为嵌套路径
             if var_name.contains('.') || var_name.contains('[') {
                 path::set_nested_value(&mut interpreter.variables, &var_name, var_value)?;
-            } else {
-                // 普通变量设置
+                } else {
+                    // 普通变量设置
                 interpreter.variables.insert(var_name, var_value);
             }
             
