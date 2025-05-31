@@ -1,0 +1,26 @@
+{
+  "import": ["!datetime"],
+  "program": {
+    "main": {
+      "body": [
+        {"print": "当前日期（默认格式）:"},
+        {"print": {"date": null}},
+        
+        {"print": "当前日期（自定义格式 DD/MM/YYYY）:"},
+        {"print": {"date": "%d/%m/%Y"}},
+        
+        {"print": "当前时间（默认格式）:"},
+        {"print": {"time": null}},
+        
+        {"print": "当前时间（自定义格式 HH-MM）:"},
+        {"print": {"time": "%H-%M"}},
+        
+        {"print": "自定义日期格式（中文）:"},
+        {"print": {"date": {"format": "%Y年%m月%d日"}}},
+        
+        {"print": "自定义时间格式（中文）:"},
+        {"print": {"time": {"format": "%H时%M分%S秒"}}}
+      ]
+    }
+  }
+} 

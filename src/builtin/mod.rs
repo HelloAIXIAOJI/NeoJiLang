@@ -3,6 +3,7 @@ use crate::error::NjilError;
 use crate::interpreter::Interpreter;
 
 pub mod io;
+pub mod datetime;
 
 /// 内置模块特性，定义了内置模块应该实现的方法
 pub trait BuiltinModule {
@@ -34,6 +35,7 @@ impl BuiltinModuleRegistry {
         
         // 注册所有内置模块
         registry.register_module(Box::new(io::IoModule::new()));
+        registry.register_module(Box::new(datetime::DateTimeModule::new()));
         
         registry
     }

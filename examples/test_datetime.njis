@@ -1,0 +1,17 @@
+[
+  // 打印当前日期（默认格式 YYYY-MM-DD）
+  {"print": {"date": null}},
+  
+  // 打印当前日期（自定义格式 DD/MM/YYYY）
+  {"print": {"date": "%d/%m/%Y"}},
+  
+  // 打印当前时间（默认格式 HH:MM:SS）
+  {"print": {"time": null}},
+  
+  // 打印当前时间（自定义格式 HH-MM）
+  {"print": {"time": "%H-%M"}},
+  
+  // 使用对象格式指定格式
+  {"print": {"date": {"format": "%Y年%m月%d日"}}},
+  {"print": {"time": {"format": "%H时%M分%S秒"}}}
+] 

@@ -139,6 +139,78 @@ NJIL程序由一系列语句组成，每个语句是一个JSON对象，键表示
 2. 实现`StatementHandler`特质
 3. 在`statements/mod.rs`中注册新的处理器
 
+## 变量设置
+
+NeoJiLang 提供了两种设置变量的格式：
+
+### 1. 结构化的 name/value 格式 (var.set)
+
+适合设置单个变量，结构清晰：
+
+```json
+{
+  "var.set": {
+    "name": "变量名",
+    "value": "变量值"
+  }
+}
+```
+
+例如：
+
+```json
+{
+  "var.set": {
+    "name": "message",
+    "value": "Hello World"
+  }
+}
+```
+
+### 2. 简洁的键值对格式 (var.set.m)
+
+适合一次设置多个变量或复杂数据结构：
+
+```json
+{
+  "var.set.m": {
+    "变量名1": "值1",
+    "变量名2": "值2",
+    "变量名3": {
+      "嵌套属性1": "嵌套值1",
+      "嵌套属性2": "嵌套值2"
+    }
+  }
+}
+```
+
+例如：
+
+```json
+{
+  "var.set.m": {
+    "user": "张三",
+    "age": 25,
+    "address": {
+      "city": "北京",
+      "district": "海淀"
+    },
+    "skills": ["编程", "绘画"]
+  }
+}
+```
+
+也可以直接修改嵌套属性：
+
+```json
+{
+  "var.set.m": {
+    "user.name": "李四",
+    "user.address.city": "上海"
+  }
+}
+```
+
 ## 版本历史
 
 查看[CHANGELOG.md](CHANGELOG.md)了解详细的版本更新历史。
