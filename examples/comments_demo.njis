@@ -1,0 +1,41 @@
+[
+  // 这是NJIS格式的注释演示
+  /* NJIS是一种简化版的NJIL
+     使用JSON数组直接表示语句序列 */
+  
+  // 打印欢迎信息
+  {
+    "print": "===== NJIS注释演示 ====="
+  },
+  
+  // 设置变量
+  {
+    "var.set": {
+      "name": "message", // 变量名
+      "value": "NJIS也支持注释!" // 变量值
+    }
+  },
+  
+  // 打印变量值
+  {
+    "print": "${var:message}"
+  },
+  
+  /* 算术运算示例 */
+  {
+    "var.set": {
+      "name": "calculation",
+      "value": {
+        "math.add": [5, 15] // 5 + 15 = 20
+      }
+    }
+  },
+  
+  // 打印计算结果
+  {
+    "print": "5 + 15 = ${var:calculation}"
+  },
+  
+  // 返回成功信息
+  "NJIS注释演示完成"
+] 

@@ -4,6 +4,7 @@ use crate::statements;
 use crate::statements::StatementHandler;
 use crate::builtin::BuiltinModuleRegistry;
 use crate::debug_println;
+use crate::preprocessor::Preprocessor;
 use serde_json::Value;
 use std::collections::{HashMap, HashSet};
 use std::fs;
@@ -63,8 +64,19 @@ impl Interpreter {
             self.current_dir = Some(parent.to_path_buf());
         }
         
-        let content = fs::read_to_string(path)?;
-        let program: NjilProgram = serde_json::from_str(&content)?;
+        // 使用预处理器处理文件内容，移除注释
+        let processed_content = Preprocessor::preprocess_file(path)?;
+        debug_println!("文件预处理完成，准备解析JSON");
+        
+        // 解析处理后的内容
+        let program: NjilProgram = match serde_json::from_str(&processed_content) {
+            Ok(p) => p,
+            Err(e) => {
+                return Err(NjilError::ExecutionError(
+                    format!("解析JSON失败: {}，请检查文件格式是否正确", e)
+                ));
+            }
+        };
         
         // 保存当前程序
         self.current_program = Some(program.clone());

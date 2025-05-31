@@ -3,18 +3,18 @@ use std::path::Path;
 use serde_json::Value;
 use crate::error::NjilError;
 use crate::interpreter::Interpreter;
+use crate::preprocessor::Preprocessor;
 
 /// NJIS (NeoJi Script) 文件处理模块
 /// NJIS 是NJIL的简化版本，使用JSON数组直接表示语句序列
 
 /// 从.njis文件加载并执行脚本
 pub fn run_njis_file<P: AsRef<Path>>(file_path: P) -> Result<Value, NjilError> {
-    // 读取文件内容
-    let content = fs::read_to_string(file_path.as_ref())
-        .map_err(|e| NjilError::IoError(e))?;
+    // 使用预处理器处理文件内容，移除注释
+    let processed_content = Preprocessor::preprocess_file(file_path.as_ref())?;
     
     // 解析NJIS文件内容
-    let statements: Value = serde_json::from_str(&content)
+    let statements: Value = serde_json::from_str(&processed_content)
         .map_err(|e| NjilError::ParseError(e))?;
     
     // 验证NJIS结构（必须是数组）
@@ -53,8 +53,11 @@ pub fn run_njis_file<P: AsRef<Path>>(file_path: P) -> Result<Value, NjilError> {
 
 /// 从字符串执行NJIS脚本
 pub fn run_njis_str(content: &str) -> Result<Value, NjilError> {
+    // 使用预处理器处理内容，移除注释
+    let processed_content = Preprocessor::preprocess_content(content)?;
+    
     // 解析NJIS内容
-    let statements: Value = serde_json::from_str(content)
+    let statements: Value = serde_json::from_str(&processed_content)
         .map_err(|e| NjilError::ParseError(e))?;
     
     // 验证NJIS结构（必须是数组）

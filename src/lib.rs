@@ -6,6 +6,7 @@ pub mod errortip;
 pub mod njis;
 pub mod builtin;
 pub mod utils;
+pub mod preprocessor;
 
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
