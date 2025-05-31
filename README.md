@@ -139,6 +139,82 @@ NJIL程序由一系列语句组成，每个语句是一个JSON对象，键表示
 2. 实现`StatementHandler`特质
 3. 在`statements/mod.rs`中注册新的处理器
 
+## 内置模块
+
+NeoJiLang 提供了多个内置模块，可以通过 `import` 语句导入：
+
+### IO 模块 (!io)
+
+提供输入输出功能：
+- `io.read` - 读取用户输入
+- `io.read_line` - 读取一行用户输入
+- `io.file_read` - 读取文件内容
+- `io.file_write` - 写入文件内容
+
+### 日期时间模块 (!datetime)
+
+提供日期和时间处理功能：
+- `datetime.date` - 获取当前日期，支持自定义格式
+- `datetime.time` - 获取当前时间，支持自定义格式
+
+### Shell 模块 (!shell)
+
+提供终端控制功能：
+- `shell.color` - 设置文本颜色，支持前景色和背景色
+  ```json
+  {"shell.color": {"text": "这是红色文本", "fg": "red"}}
+  {"shell.color": {"text": "白色文本, 蓝色背景", "fg": "white", "bg": "blue"}}
+  ```
+- `shell.style` - 设置文本样式
+  ```json
+  {"shell.style": {"text": "加粗文本", "bold": true}}
+  {"shell.style": {"text": "下划线文本", "underline": true}}
+  ```
+- `shell.clear_line` - 清除当前行
+  ```json
+  {"shell.clear_line": true}
+  ```
+- `shell.write` - 写入文本（不换行）
+  ```json
+  {"shell.write": "不换行文本"}
+  ```
+- `shell.write_line` - 写入文本并换行
+  ```json
+  {"shell.write_line": "带换行的文本"}
+  ```
+- `shell.overwrite` - 清除当前行并写入新文本
+  ```json
+  {"shell.overwrite": "覆盖当前行的文本"}
+  ```
+
+支持的颜色：`black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `white`
+
+示例 - 创建进度条：
+```json
+[
+  {"var.set.m": {"progress": 0, "total": 100}},
+  {"loop.while": {
+    "condition": {"compare": {"left": {"var": "progress"}, "operator": "<", "right": {"var": "total"}}},
+    "body": [
+      {"shell.clear_line": true},
+      {"shell.write": "进度: "},
+      {"var.set.m": {"progress": {"add": [{"var": "progress"}, 5]}}},
+      {"var.set.m": {"bar": ""}},
+      {"loop.for": {
+        "count": {"divide": [{"var": "progress"}, 5]},
+        "body": {"var.set.m": {"bar": {"string.concat": [{"var": "bar"}, "█"]}}}
+      }},
+      {"shell.color": {"text": {"var": "bar"}, "fg": "cyan"}},
+      {"shell.write": " "},
+      {"shell.color": {"text": {"string.concat": [{"var": "progress"}, "%"]}, "fg": "yellow", "bold": true}},
+      {"sleep": 100}
+    ]
+  }},
+  {"shell.write_line": ""},
+  {"shell.color": {"text": "进度完成！", "fg": "green", "bold": true}}
+]
+```
+
 ## 变量设置
 
 NeoJiLang 提供了两种设置变量的格式：

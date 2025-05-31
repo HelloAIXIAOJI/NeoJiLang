@@ -1,0 +1,71 @@
+[
+  {"print": "Shell模块演示\n"},
+  
+  {"print": "=== 基本颜色演示 ===\n"},
+  {"shell.color": {"text": "这是红色文本", "fg": "red"}},
+  {"print": "\n"},
+  {"shell.color": {"text": "这是绿色文本", "fg": "green"}},
+  {"print": "\n"},
+  {"shell.color": {"text": "这是蓝色文本", "fg": "blue"}},
+  {"print": "\n"},
+  {"shell.color": {"text": "这是黄色文本", "fg": "yellow"}},
+  {"print": "\n"},
+  {"shell.color": {"text": "这是白色文本, 红色背景", "fg": "white", "bg": "red"}},
+  {"print": "\n"},
+  
+  {"print": "\n=== 文本样式演示 ===\n"},
+  {"shell.style": {"text": "这是加粗文本", "bold": true}},
+  {"print": "\n"},
+  {"shell.style": {"text": "这是下划线文本", "underline": true}},
+  {"print": "\n"},
+  {"shell.style": {"text": "这是闪烁文本", "blink": true}},
+  {"print": "\n"},
+  {"shell.style": {"text": "这是加粗+下划线文本", "bold": true, "underline": true}},
+  {"print": "\n"},
+
+  {"print": "\n=== 进度条演示 ===\n"},
+  {"var.set.m": {"progress": 0, "total": 100, "delay": 50}},
+  {"loop.while": {
+    "condition": {"math.compare": {"left": {"var": "progress"}, "op": "<", "right": {"var": "total"}}},
+    "body": [
+      {"shell.clear_line": true},
+      {"shell.write": "进度: "},
+      {"var.set.m": {"progress": {"math.add": [{"var": "progress"}, 5]}}},
+      {"var.set.m": {"bar": ""}},
+      {"loop.for": {
+        "count": {"math.divide": {"dividend": {"var": "progress"}, "divisor": 5}},
+        "body": {"var.set.m": {"bar": {"string.concat": [{"var": "bar"}, "█"]}}}
+      }},
+      {"shell.color": {"text": {"var": "bar"}, "fg": "cyan"}},
+      {"shell.write": " "},
+      {"shell.color": {"text": {"string.concat": [{"var": "progress"}, "%"]}, "fg": "yellow", "bold": true}},
+      {"sleep": {"var": "delay"}}
+    ]
+  }},
+  {"shell.write_line": ""},
+  {"shell.color": {"text": "进度完成！", "fg": "green", "bold": true}},
+  {"print": "\n"},
+  
+  {"print": "\n=== 覆盖行演示 ===\n"},
+  {"var.set.m": {"countdown": 5}},
+  {"loop.while": {
+    "condition": {"math.compare": {"left": {"var": "countdown"}, "op": ">", "right": 0}},
+    "body": [
+      {"shell.overwrite": {"string.concat": ["倒计时: ", {"var": "countdown"}]}},
+      {"var.set.m": {"countdown": {"math.subtract": {"minuend": {"var": "countdown"}, "subtrahend": 1}}}},
+      {"sleep": 1000}
+    ]
+  }},
+  {"shell.overwrite": "倒计时结束!"},
+  {"print": "\n\n"},
+  
+  {"print": "=== 信息样式演示 ===\n"},
+  {"shell.color": {"text": "错误: ", "fg": "red", "bold": true}},
+  {"shell.write_line": "文件未找到"},
+  {"shell.color": {"text": "警告: ", "fg": "yellow"}},
+  {"shell.write_line": "权限可能不足"},
+  {"shell.color": {"text": "信息: ", "fg": "blue"}},
+  {"shell.write_line": "操作正在进行中"},
+  {"shell.color": {"text": "成功: ", "fg": "green"}},
+  {"shell.write_line": "操作已完成"}
+] 
