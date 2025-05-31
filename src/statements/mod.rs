@@ -15,6 +15,7 @@ pub mod logic;
 pub mod type_convert;
 pub mod arithmetic;
 pub mod function_call;
+pub mod sleep;
 
 use print::PRINT_HANDLER;
 use string::STRING_CONCAT_HANDLER;
@@ -23,6 +24,7 @@ use return_stmt::RETURN_HANDLER;
 use json::{JSON_NEW_HANDLER, JSON_GET_HANDLER, JSON_SET_HANDLER};
 use control_flow::get_all_handlers as get_all_control_flow_handlers;
 pub use control_flow::{IF_HANDLER, WHILE_LOOP_HANDLER, FOR_LOOP_HANDLER, FOREACH_LOOP_HANDLER, BREAK_HANDLER, CONTINUE_HANDLER};
+use sleep::SLEEP_HANDLER;
 
 use logic::{
     LOGIC_AND_HANDLER,
@@ -66,6 +68,7 @@ impl StatementRegistry {
         registry.register_handler(&VAR_SET_MULTI_HANDLER);
         registry.register_handler(&RETURN_HANDLER);
         registry.register_handler(&STRING_CONCAT_HANDLER);
+        registry.register_handler(&SLEEP_HANDLER);
         
         // 注册JSON语句处理器
         registry.register_handler(&JSON_NEW_HANDLER);

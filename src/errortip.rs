@@ -111,4 +111,27 @@ pub mod logic {
     pub fn or_requires_operands() -> &'static str {
         "逻辑或操作需要至少一个操作数"
     }
+}
+
+/// 延时相关错误信息
+pub mod sleep {
+    /// 延时参数无效
+    pub fn invalid_sleep_duration() -> String {
+        "延时参数无效，必须是正数或带有duration字段的对象".to_string()
+    }
+    
+    /// 时间单位无效
+    pub fn invalid_time_unit(unit: &str) -> String {
+        format!("无效的时间单位: {}，支持的单位有: ms (毫秒), s (秒), m (分钟)", unit)
+    }
+    
+    /// 延时值必须是数字
+    pub fn duration_must_be_number() -> String {
+        "延时时间必须是数字".to_string()
+    }
+    
+    /// 延时值不能为负
+    pub fn duration_cannot_be_negative() -> String {
+        "延时时间不能为负数".to_string()
+    }
 } 

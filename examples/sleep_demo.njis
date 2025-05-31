@@ -1,0 +1,50 @@
+[
+  {"print": "===== NeoJiLang 延时功能演示 ====="},
+  
+  {"print": "1. 简单延时（默认毫秒）"},
+  {"print": "开始等待500毫秒..."},
+  {"sleep": 500},
+  {"print": "等待结束！"},
+  
+  {"print": "\n2. 指定单位的延时"},
+  {"print": "开始等待1秒..."},
+  {"sleep": {"duration": 1, "unit": "s"}},
+  {"print": "等待结束！"},
+  
+  {"print": "\n3. 使用别名"},
+  {"print": "使用delay别名等待250毫秒..."},
+  {"delay": 250},
+  {"print": "使用wait别名等待250毫秒..."},
+  {"wait": 250},
+  {"print": "等待结束！"},
+  
+  {"print": "\n4. 动画效果模拟"},
+  {"print": "加载中"},
+  {"sleep": 300},
+  {"print": "加载中."},
+  {"sleep": 300},
+  {"print": "加载中.."},
+  {"sleep": 300},
+  {"print": "加载中..."},
+  {"sleep": 300},
+  {"print": "加载完成！"},
+  
+  {"print": "\n5. 变量控制的延时"},
+  {"var.set.m": {
+    "delay_time": 800
+  }},
+  {"print": "使用变量控制的延时，等待800毫秒..."},
+  {"sleep": {"var": "delay_time"}},
+  {"print": "等待结束！"},
+  
+  {"print": "\n6. 变量作为参数"},
+  {"var.set.m": {
+    "custom_time": 500,
+    "custom_unit": "ms"
+  }},
+  {"print": "使用变量作为参数，等待500毫秒..."},
+  {"sleep": {"duration": {"var": "custom_time"}, "unit": {"var": "custom_unit"}}},
+  {"print": "等待结束！"},
+  
+  {"print": "\n延时功能演示完成！"}
+] 
