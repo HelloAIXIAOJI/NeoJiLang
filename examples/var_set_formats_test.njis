@@ -1,0 +1,49 @@
+[
+  {"print": "===== 变量设置格式测试 ====="},
+  
+  {"print": "\n1. 使用结构化的 name/value 格式:"},
+  {"var.set": {
+    "name": "message",
+    "value": "这是通过name/value格式设置的变量"
+  }},
+  {"print": "${var:message}"},
+  
+  {"print": "\n2. 使用简洁的键值对格式:"},
+  {"var.set.m": {
+    "user": "张三",
+    "age": 25,
+    "isStudent": true,
+    "scores": [90, 85, 92]
+  }},
+  
+  {"print": "用户名: ${var:user}"},
+  {"print": "年龄: ${var:age}"},
+  {"print": "是否学生: ${var:isStudent}"},
+  {"print": ["分数列表: ", {"var": "scores"}]},
+  
+  {"print": "\n3. 嵌套对象测试:"},
+  {"var.set.m": {
+    "person": {
+      "name": "李四",
+      "contact": {
+        "email": "lisi@example.com",
+        "phone": "123456789"
+      }
+    }
+  }},
+  
+  {"print": "人员名称: ${var:person.name}"},
+  {"print": "邮箱地址: ${var:person.contact.email}"},
+  {"print": "电话号码: ${var:person.contact.phone}"},
+  
+  {"print": "\n4. 修改嵌套属性:"},
+  {"var.set.m": {
+    "person.name": "王五",
+    "person.contact.phone": "987654321"
+  }},
+  
+  {"print": "修改后的名称: ${var:person.name}"},
+  {"print": "修改后的电话: ${var:person.contact.phone}"},
+  
+  {"print": "\n测试完成"}
+] 

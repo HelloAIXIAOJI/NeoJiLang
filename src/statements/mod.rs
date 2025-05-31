@@ -18,7 +18,7 @@ pub mod function_call;
 
 use print::PRINT_HANDLER;
 use string::STRING_CONCAT_HANDLER;
-use var::{VAR_HANDLER, VAR_SET_HANDLER};
+use var::{VAR_HANDLER, VAR_SET_HANDLER, VAR_SET_MULTI_HANDLER};
 use return_stmt::RETURN_HANDLER;
 use json::{JSON_NEW_HANDLER, JSON_GET_HANDLER, JSON_SET_HANDLER};
 use control_flow::get_all_handlers as get_all_control_flow_handlers;
@@ -63,6 +63,7 @@ impl StatementRegistry {
         registry.register_handler(&PRINT_HANDLER);
         registry.register_handler(&VAR_HANDLER);
         registry.register_handler(&VAR_SET_HANDLER);
+        registry.register_handler(&VAR_SET_MULTI_HANDLER);
         registry.register_handler(&RETURN_HANDLER);
         registry.register_handler(&STRING_CONCAT_HANDLER);
         

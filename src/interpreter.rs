@@ -276,10 +276,27 @@ impl Interpreter {
                     let var_name = cap[1].to_string();
                     let full_match = cap[0].to_string();
                     
+                    debug_println!("[value_to_string] 尝试替换变量: {}", var_name);
+                    
                     // 获取变量值
                     let var_value = if let Some(val) = self.variables.get(&var_name) {
+                        debug_println!("[value_to_string] 找到变量 {} 的值: {}", var_name, serde_json::to_string(val).unwrap());
                         val.clone()
+                    } else if var_name.contains('.') || var_name.contains('[') {
+                        // 尝试处理嵌套变量路径
+                        debug_println!("[value_to_string] 尝试解析嵌套变量路径: {}", var_name);
+                        match statements::var::get_nested_variable(self, &var_name) {
+                            Ok(nested_val) => {
+                                debug_println!("[value_to_string] 找到嵌套变量值: {}", serde_json::to_string(&nested_val).unwrap());
+                                nested_val
+                            },
+                            Err(e) => {
+                                debug_println!("[value_to_string] 获取嵌套变量失败: {:?}", e);
+                                Value::String(format!("undefined:{}", var_name))
+                            }
+                        }
                     } else {
+                        debug_println!("[value_to_string] 变量 {} 未定义", var_name);
                         Value::String(format!("undefined:{}", var_name))
                     };
                     
@@ -289,6 +306,7 @@ impl Interpreter {
                 // 执行替换
                 for (pattern, var_value) in replacements {
                     let replacement = self.value_to_string(&var_value);
+                    debug_println!("[value_to_string] 替换 {} 为 {}", pattern, replacement);
                     result = result.replace(&pattern, &replacement);
                 }
                 

@@ -1,0 +1,76 @@
+[
+  {"print": "===== NeoJiLang 变量设置格式对比 ====="},
+  
+  {"print": "\n1. 结构化格式 (var.set)"},
+  {"print": "特点：结构清晰，适合设置单个变量"},
+  {"print": "示例："},
+  
+  {"var.set": {
+    "name": "message",
+    "value": "这是通过结构化格式设置的变量"
+  }},
+  {"print": "message = ${var:message}"},
+  
+  {"var.set": {
+    "name": "user",
+    "value": {
+      "name": "张三",
+      "age": 30,
+      "city": "北京"
+    }
+  }},
+  {"print": "user = ${var:user}"},
+  {"print": "user.name = ${var:user.name}"},
+  
+  {"print": "\n2. 简洁格式 (var.set.m)"},
+  {"print": "特点：简洁高效，适合设置多个变量或复杂结构"},
+  {"print": "示例："},
+  
+  {"var.set.m": {
+    "greeting": "你好，世界！",
+    "count": 42,
+    "isPremium": true
+  }},
+  {"print": "一次设置多个变量："},
+  {"print": "  greeting = ${var:greeting}"},
+  {"print": "  count = ${var:count}"},
+  {"print": "  isPremium = ${var:isPremium}"},
+  
+  {"var.set.m": {
+    "company": {
+      "name": "示例科技",
+      "founded": 2020,
+      "departments": [
+        {"name": "研发部", "staff": 50},
+        {"name": "市场部", "staff": 30},
+        {"name": "客服部", "staff": 20}
+      ]
+    }
+  }},
+  {"print": "设置复杂嵌套结构："},
+  {"print": "  公司名称: ${var:company.name}"},
+  {"print": "  成立年份: ${var:company.founded}"},
+  {"print": "  部门数量: ${var:company.departments.length}"},
+  {"print": "  研发部人数: ${var:company.departments[0].staff}"},
+  
+  {"print": "\n3. 直接修改嵌套属性"},
+  {"var.set.m": {
+    "company.name": "新示例科技有限公司",
+    "company.departments[0].staff": 60,
+    "company.address": {
+      "city": "上海",
+      "district": "浦东新区"
+    }
+  }},
+  {"print": "修改后的属性："},
+  {"print": "  新公司名称: ${var:company.name}"},
+  {"print": "  研发部新人数: ${var:company.departments[0].staff}"},
+  {"print": "  公司地址: ${var:company.address.city} ${var:company.address.district}"},
+  
+  {"print": "\n4. 两种格式的选择建议："},
+  {"print": "  - 结构化格式 (var.set)：当设置单个变量且强调可读性时"},
+  {"print": "  - 简洁格式 (var.set.m)：当设置多个变量或复杂结构时"},
+  {"print": "  - 两种格式可以在同一程序中混合使用"},
+  
+  {"return": "变量设置格式对比示例完成"}
+] 

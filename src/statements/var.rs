@@ -54,6 +54,47 @@ impl StatementHandler for VarSetHandler {
     }
 }
 
+/// 多变量设置语句处理器 - 使用简洁的键值对格式
+pub struct VarSetMultiHandler;
+
+// 静态实例
+pub static VAR_SET_MULTI_HANDLER: VarSetMultiHandler = VarSetMultiHandler;
+
+impl StatementHandler for VarSetMultiHandler {
+    fn handle(&self, interpreter: &mut Interpreter, value: &Value) -> Result<Value, NjilError> {
+        if let Value::Object(var_obj) = value {
+            debug_println!("使用键值对格式设置多个变量，数量: {}", var_obj.len());
+            
+            // 遍历对象中的所有键值对，每一个都作为变量
+            for (var_name, var_value_raw) in var_obj {
+                // 计算变量值
+                let var_value = interpreter.evaluate_value(var_value_raw)?;
+                debug_println!("设置变量 {} 的值: {}", var_name, serde_json::to_string_pretty(&var_value).unwrap());
+                
+                // 检查是否为嵌套路径
+                if var_name.contains('.') || var_name.contains('[') {
+                    path::set_nested_value(&mut interpreter.variables, var_name, var_value)?;
+                } else {
+                    // 普通变量设置
+                    interpreter.variables.insert(var_name.clone(), var_value);
+                }
+            }
+            
+            Ok(Value::Null)
+        } else {
+            Err(NjilError::ExecutionError("var.set.m需要一个对象作为参数".to_string()))
+        }
+    }
+    
+    fn name(&self) -> &'static str {
+        "var.set.m"
+    }
+    
+    fn aliases(&self) -> Vec<&'static str> {
+        vec!["var.m"]
+    }
+}
+
 /// 变量获取语句处理器
 pub struct VarHandler;
 
@@ -85,7 +126,7 @@ impl StatementHandler for VarHandler {
 }
 
 /// 获取嵌套变量
-fn get_nested_variable(interpreter: &Interpreter, var_path: &str) -> Result<Value, NjilError> {
+pub fn get_nested_variable(interpreter: &Interpreter, var_path: &str) -> Result<Value, NjilError> {
     // 解析变量路径
     let path_parts = path::parse_path(var_path)?;
     
