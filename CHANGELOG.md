@@ -3,7 +3,7 @@
 ## [0.1.7] - 2025-05-31
 
 - 才发现 0.1.6 Release 的时候没 Push 到GitHub...
-- 导致 0.1.6 Release 的 Source code 还是 0.1.5 的
+- 导致 0.1.6 Release 的 Source code 还是 0.1.5 的（但exe确实是0.1.6）
 - 抱歉
 
 ### 新增功能
