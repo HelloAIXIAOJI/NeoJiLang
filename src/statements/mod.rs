@@ -14,27 +14,24 @@ pub mod control_flow;
 pub mod logic;
 pub mod type_convert;
 pub mod arithmetic;
+pub mod function_call;
 
 use print::PRINT_HANDLER;
 use string::STRING_CONCAT_HANDLER;
 use var::{VAR_HANDLER, VAR_SET_HANDLER};
 use return_stmt::RETURN_HANDLER;
 use json::{JSON_NEW_HANDLER, JSON_GET_HANDLER, JSON_SET_HANDLER};
-use control_flow::{
-    IF_HANDLER,
-    WHILE_LOOP_HANDLER,
-    FOR_LOOP_HANDLER,
-    FOREACH_LOOP_HANDLER,
-    BREAK_HANDLER,
-    CONTINUE_HANDLER,
-};
+use control_flow::get_all_handlers as get_all_control_flow_handlers;
+pub use control_flow::{IF_HANDLER, WHILE_LOOP_HANDLER, FOR_LOOP_HANDLER, FOREACH_LOOP_HANDLER, BREAK_HANDLER, CONTINUE_HANDLER};
+
 use logic::{
     LOGIC_AND_HANDLER,
     LOGIC_OR_HANDLER,
     LOGIC_NOT_HANDLER,
 };
 use type_convert::{TYPE_CONVERT_HANDLER, TO_BOOL_HANDLER, TO_NUMBER_HANDLER, TO_STRING_HANDLER, TO_ARRAY_HANDLER, TO_OBJECT_HANDLER, TYPE_OF_HANDLER};
-use arithmetic::{ADD_HANDLER, SUBTRACT_HANDLER, MULTIPLY_HANDLER, DIVIDE_HANDLER, MODULO_HANDLER, COMPARE_HANDLER};
+use arithmetic::get_all_handlers as get_all_arithmetic_handlers;
+use function_call::FUNCTION_CALL_HANDLER;
 
 /// 语句处理器特性
 pub trait StatementHandler: Send + Sync {
@@ -74,13 +71,10 @@ impl StatementRegistry {
         registry.register_handler(&JSON_GET_HANDLER);
         registry.register_handler(&JSON_SET_HANDLER);
         
-        // 注册控制流语句处理器
-        registry.register_handler(&IF_HANDLER);
-        registry.register_handler(&WHILE_LOOP_HANDLER);
-        registry.register_handler(&FOR_LOOP_HANDLER);
-        registry.register_handler(&FOREACH_LOOP_HANDLER);
-        registry.register_handler(&BREAK_HANDLER);
-        registry.register_handler(&CONTINUE_HANDLER);
+        // 注册控制流语句处理器 - 使用统一的注册方法
+        for handler in get_all_control_flow_handlers() {
+            registry.register_handler(handler);
+        }
         
         // 注册逻辑运算语句处理器
         registry.register_handler(&LOGIC_AND_HANDLER);
@@ -97,12 +91,12 @@ impl StatementRegistry {
         registry.register_handler(&TYPE_OF_HANDLER);
         
         // 注册算术运算语句处理器
-        registry.register_handler(&ADD_HANDLER);
-        registry.register_handler(&SUBTRACT_HANDLER);
-        registry.register_handler(&MULTIPLY_HANDLER);
-        registry.register_handler(&DIVIDE_HANDLER);
-        registry.register_handler(&MODULO_HANDLER);
-        registry.register_handler(&COMPARE_HANDLER);
+        for handler in get_all_arithmetic_handlers() {
+            registry.register_handler(handler);
+        }
+        
+        // 注册函数调用处理器
+        registry.register_handler(&FUNCTION_CALL_HANDLER);
         
         registry
     }

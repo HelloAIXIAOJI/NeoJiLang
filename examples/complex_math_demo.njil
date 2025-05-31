@@ -1,0 +1,192 @@
+{
+  "program": {
+    "main": {
+      "body": [
+        {
+          "print": "===== Complex Math Operations Demo ====="
+        },
+        {
+          "print": "\n1. Nested Arithmetic Operations:"
+        },
+        {
+          "var.set": {
+            "name": "result1",
+            "value": {
+              "math.add": [
+                {
+                  "math.multiply": [2, 3]
+                },
+                {
+                  "math.divide": {
+                    "dividend": 20,
+                    "divisors": [2, 2]
+                  }
+                },
+                {
+                  "math.modulo": {
+                    "dividend": 10,
+                    "divisor": 3
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "print": "  (2 * 3) + (20 / 2 / 2) + (10 % 3) = ${var:result1}"
+        },
+        {
+          "print": "\n2. Complex Comparison Operations:"
+        },
+        {
+          "var.set": {
+            "name": "result2",
+            "value": {
+              "math.compare": {
+                "left": {
+                  "math.add": [
+                    {
+                      "math.multiply": [3, 4]
+                    },
+                    5
+                  ]
+                },
+                "right": {
+                  "math.subtract": {
+                    "minuend": 25,
+                    "subtrahends": [2, 3]
+                  }
+                },
+                "op": "=="
+              }
+            }
+          }
+        },
+        {
+          "print": "  (3 * 4 + 5) == (25 - 2 - 3) ? ${var:result2}"
+        },
+        {
+          "print": "\n3. Chained Calculations:"
+        },
+        {
+          "var.set": {
+            "name": "step1",
+            "value": {
+              "math.multiply": [4, 5]
+            }
+          }
+        },
+        {
+          "var.set": {
+            "name": "step2",
+            "value": {
+              "math.divide": {
+                "dividend": {
+                  "var": "step1"
+                },
+                "divisors": [2]
+              }
+            }
+          }
+        },
+        {
+          "var.set": {
+            "name": "step3",
+            "value": {
+              "math.add": [
+                {
+                  "var": "step2"
+                },
+                10
+              ]
+            }
+          }
+        },
+        {
+          "print": "  Step 1: 4 * 5 = ${var:step1}"
+        },
+        {
+          "print": "  Step 2: ${var:step1} / 2 = ${var:step2}"
+        },
+        {
+          "print": "  Step 3: ${var:step2} + 10 = ${var:step3}"
+        },
+        {
+          "print": "\n4. String and Number Operations:"
+        },
+        {
+          "var.set": {
+            "name": "str_num",
+            "value": {
+              "math.add": ["The answer is: ", 42]
+            }
+          }
+        },
+        {
+          "print": "  \"The answer is: \" + 42 = ${var:str_num}"
+        },
+        {
+          "print": "\n5. Boolean Results in Conditions:"
+        },
+        {
+          "var.set": {
+            "name": "condition1",
+            "value": {
+              "math.compare": {
+                "left": {
+                  "math.add": [10, 5]
+                },
+                "right": 15,
+                "op": "=="
+              }
+            }
+          }
+        },
+        {
+          "var.set": {
+            "name": "condition2",
+            "value": {
+              "math.compare": {
+                "left": {
+                  "math.multiply": [3, 3]
+                },
+                "right": 10,
+                "op": ">"
+              }
+            }
+          }
+        },
+        {
+          "var.set": {
+            "name": "combined_condition",
+            "value": {
+              "logic.and": [
+                {
+                  "var": "condition1"
+                },
+                {
+                  "var": "condition2"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "print": "  Condition 1: (10 + 5) == 15 ? ${var:condition1}"
+        },
+        {
+          "print": "  Condition 2: (3 * 3) > 10 ? ${var:condition2}"
+        },
+        {
+          "print": "  Combined: Condition 1 AND Condition 2 ? ${var:combined_condition}"
+        },
+        {
+          "print": "\n===== Demo Complete ====="
+        },
+        {
+          "return": "Complex math demo completed successfully"
+        }
+      ]
+    }
+  }
+} 

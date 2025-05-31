@@ -2,6 +2,7 @@ use crate::error::NjilError;
 use serde_json::Value;
 use crate::interpreter::Interpreter;
 use crate::errortip;
+use crate::debug_println;
 use super::StatementHandler;
 use crate::utils::path::{self, PathPart};
 
@@ -13,33 +14,35 @@ pub static VAR_SET_HANDLER: VarSetHandler = VarSetHandler;
 
 impl StatementHandler for VarSetHandler {
     fn handle(&self, interpreter: &mut Interpreter, value: &Value) -> Result<Value, NjilError> {
-        if let Value::Object(var_map) = value {
-            for (var_path, var_value) in var_map {
-                // 先评估值
-                let evaluated_value = match var_value {
-                    Value::Object(obj) => {
-                        // 如果是嵌套对象，需要递归处理
-                        let mut result_obj = serde_json::Map::new();
-                        
-                        for (key, val) in obj {
-                            // 递归评估值
-                            let eval_val = interpreter.evaluate_value(val)?;
-                            result_obj.insert(key.clone(), eval_val);
-                        }
-                        
-                        Value::Object(result_obj)
-                    },
-                    _ => interpreter.evaluate_value(var_value)?
-                };
-                
-                // 检查是否为嵌套路径
-                if var_path.contains('.') || var_path.contains('[') {
-                    path::set_nested_value(&mut interpreter.variables, var_path, evaluated_value)?;
-                } else {
-                    // 普通变量设置
-                    interpreter.variables.insert(var_path.clone(), evaluated_value);
-                }
+        if let Value::Object(var_obj) = value {
+            // 检查是否有name和value字段
+            if !var_obj.contains_key("name") || !var_obj.contains_key("value") {
+                return Err(NjilError::ExecutionError(
+                    "var.set需要name和value字段".to_string()
+                ));
             }
+            
+            // 获取变量名
+            let name_value = interpreter.evaluate_value(var_obj.get("name").unwrap())?;
+            let var_name = match name_value {
+                Value::String(s) => s,
+                _ => return Err(NjilError::ExecutionError("变量名必须是字符串".to_string())),
+            };
+            
+            debug_println!("设置变量 {} 的值", var_name);
+            
+            // 获取变量值
+            let var_value = interpreter.evaluate_value(var_obj.get("value").unwrap())?;
+            debug_println!("变量 {} 的值为: {}", var_name, serde_json::to_string_pretty(&var_value).unwrap());
+            
+            // 检查是否为嵌套路径
+            if var_name.contains('.') || var_name.contains('[') {
+                path::set_nested_value(&mut interpreter.variables, &var_name, var_value)?;
+            } else {
+                // 普通变量设置
+                interpreter.variables.insert(var_name, var_value);
+            }
+            
             Ok(Value::Null)
         } else {
             Err(NjilError::ExecutionError(errortip::var::var_set_requires_object().to_string()))

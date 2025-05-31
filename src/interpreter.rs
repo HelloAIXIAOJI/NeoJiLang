@@ -3,10 +3,12 @@ use crate::types::{Function, NjilProgram};
 use crate::statements;
 use crate::statements::StatementHandler;
 use crate::builtin::BuiltinModuleRegistry;
+use crate::debug_println;
 use serde_json::Value;
 use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
+use regex;
 
 /// 解释器，负责执行NeoJiLang代码
 pub struct Interpreter {
@@ -16,6 +18,7 @@ pub struct Interpreter {
     pub(crate) returning: Option<Value>,
     loaded_modules: HashSet<String>,
     current_dir: Option<PathBuf>,
+    current_program: Option<NjilProgram>,
 }
 
 impl Interpreter {
@@ -28,16 +31,27 @@ impl Interpreter {
             returning: None,
             loaded_modules: HashSet::new(),
             current_dir: None,
+            current_program: None,
         }
     }
 
     /// 创建一个新的干净的解释器实例，但保留变量
     pub fn create_clean_instance(&self) -> Self {
-        let mut new_instance = Self::new();
+        let mut new_instance = Self {
+            variables: HashMap::new(),
+            statement_handlers: HashMap::new(),
+            builtin_modules: self.builtin_modules.clone_empty(),
+            returning: None,
+            loaded_modules: self.loaded_modules.clone(),
+            current_dir: self.current_dir.clone(),
+            current_program: self.current_program.clone(),
+        };
+        
         // 复制变量
         for (key, value) in &self.variables {
             new_instance.variables.insert(key.clone(), value.clone());
         }
+        
         new_instance
     }
 
@@ -51,10 +65,17 @@ impl Interpreter {
         
         let content = fs::read_to_string(path)?;
         let program: NjilProgram = serde_json::from_str(&content)?;
+        
+        // 保存当前程序
+        self.current_program = Some(program.clone());
+        
         Ok(program)
     }
 
     pub fn execute(&mut self, program: &NjilProgram) -> Result<Value, NjilError> {
+        // 保存当前程序
+        self.current_program = Some(program.clone());
+        
         // 处理导入
         if let Some(imports) = &program.import {
             self.process_imports(imports)?;
@@ -147,18 +168,29 @@ impl Interpreter {
     }
 
     fn execute_function(&mut self, function: &Function) -> Result<Value, NjilError> {
-        for statement in &function.body {
+        debug_println!("[Interpreter::execute_function] 开始执行函数, 语句数量: {}", function.body.len());
+        
+        for (i, statement) in function.body.iter().enumerate() {
+            debug_println!("[Interpreter::execute_function] 执行语句 #{}: {}", i, serde_json::to_string_pretty(statement).unwrap());
+            
             match self.execute_statement(statement) {
-                Ok(_) => {},
+                Ok(result) => {
+                    debug_println!("[Interpreter::execute_function] 语句 #{} 执行成功, 结果: {}", i, serde_json::to_string_pretty(&result).unwrap());
+                },
                 Err(NjilError::ReturnValue(value)) => {
+                    debug_println!("[Interpreter::execute_function] 遇到return语句, 返回值: {}", serde_json::to_string_pretty(&value).unwrap());
                     let value_clone = value.clone();
                     self.returning = Some(value);
                     return Ok(value_clone);
                 }
-                Err(e) => return Err(e),
+                Err(e) => {
+                    debug_println!("[Interpreter::execute_function] 语句 #{} 执行失败: {:?}", i, e);
+                    return Err(e);
+                },
             }
         }
         
+        debug_println!("[Interpreter::execute_function] 函数执行完毕，但没有返回值");
         Err(NjilError::ExecutionError("函数没有返回值".to_string()))
     }
 
@@ -182,6 +214,11 @@ impl Interpreter {
                                 return statements::var::VAR_HANDLER.handle(self, value);
                             }
                         }
+                    }
+                    
+                    // 处理函数调用
+                    if key == "function.call" || key == "call" || key == "func.call" {
+                        return statements::function_call::FUNCTION_CALL_HANDLER.handle(self, value);
                     }
                 }
                 
@@ -216,7 +253,35 @@ impl Interpreter {
 
     pub fn value_to_string(&mut self, value: &Value) -> String {
         match value {
-            Value::String(s) => s.clone(),
+            Value::String(s) => {
+                // 处理变量引用，格式为 ${var:name}
+                let mut result = s.clone();
+                let var_pattern = regex::Regex::new(r"\$\{var:([^}]+)\}").unwrap();
+                
+                // 收集所有需要替换的变量
+                let mut replacements = Vec::new();
+                for cap in var_pattern.captures_iter(&result) {
+                    let var_name = cap[1].to_string();
+                    let full_match = cap[0].to_string();
+                    
+                    // 获取变量值
+                    let var_value = if let Some(val) = self.variables.get(&var_name) {
+                        val.clone()
+                    } else {
+                        Value::String(format!("undefined:{}", var_name))
+                    };
+                    
+                    replacements.push((full_match, var_value));
+                }
+                
+                // 执行替换
+                for (pattern, var_value) in replacements {
+                    let replacement = self.value_to_string(&var_value);
+                    result = result.replace(&pattern, &replacement);
+                }
+                
+                result
+            },
             Value::Number(n) => n.to_string(),
             Value::Bool(b) => b.to_string(),
             Value::Null => "null".to_string(),
@@ -294,6 +359,62 @@ impl Interpreter {
         
         // 如果不是操作或执行失败，返回原值
         Ok(value.clone())
+    }
+
+    /// 调用函数
+    pub fn call_function(&mut self, function_name: &str, args: &[Value]) -> Result<Value, NjilError> {
+        debug_println!("[Interpreter::call_function] 开始调用函数: {}", function_name);
+        
+        // 检查函数是否存在
+        let function = match self.get_function(function_name) {
+            Some(func) => {
+                debug_println!("[Interpreter::call_function] 找到函数: {}", function_name);
+                func.clone()
+            },
+            None => {
+                debug_println!("[Interpreter::call_function] 找不到函数: {}", function_name);
+                return Err(NjilError::ExecutionError(format!("找不到函数: {}", function_name)));
+            },
+        };
+        
+        // 创建一个新的变量作用域（新的解释器实例，但共享模块加载状态）
+        let mut function_interpreter = self.create_clean_instance();
+        debug_println!("[Interpreter::call_function] 创建了新的解释器实例");
+        
+        // 如果有参数，则设置参数变量
+        if !args.is_empty() {
+            debug_println!("[Interpreter::call_function] 设置参数变量, 参数数量: {}", args.len());
+            
+            // 参数通过 $args 数组传递
+            function_interpreter.set_variable("$args".to_string(), Value::Array(args.to_vec()));
+            
+            // 如果需要，可以添加命名参数支持
+            // 例如，第一个参数可以通过 $1 访问，第二个通过 $2，以此类推
+            for (i, arg) in args.iter().enumerate() {
+                let param_name = format!("${}", i + 1);
+                debug_println!("[Interpreter::call_function] 设置参数 {}: {}", param_name, serde_json::to_string_pretty(arg).unwrap());
+                function_interpreter.set_variable(param_name, arg.clone());
+            }
+        }
+        
+        // 执行函数
+        debug_println!("[Interpreter::call_function] 开始执行函数: {}", function_name);
+        let result = function_interpreter.execute_function(&function);
+        debug_println!("[Interpreter::call_function] 函数执行结果: {:?}", result);
+        result
+    }
+    
+    /// 获取函数定义
+    pub fn get_function(&self, function_name: &str) -> Option<&Function> {
+        // 首先在当前加载的程序中查找
+        if let Some(program) = &self.current_program {
+            if let Some(func) = program.program.functions.get(function_name) {
+                return Some(func);
+            }
+        }
+        
+        // 如果没有找到，可以在未来实现在导入的模块中查找
+        None
     }
 }
 

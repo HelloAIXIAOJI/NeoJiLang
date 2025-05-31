@@ -8,6 +8,30 @@ pub mod builtin;
 pub mod utils;
 
 use std::path::Path;
+use std::sync::atomic::{AtomicBool, Ordering};
+
+/// 全局调试模式标志
+static DEBUG_MODE: AtomicBool = AtomicBool::new(false);
+
+/// 设置调试模式
+pub fn set_debug_mode(enabled: bool) {
+    DEBUG_MODE.store(enabled, Ordering::SeqCst);
+}
+
+/// 检查调试模式是否开启
+pub fn is_debug_mode() -> bool {
+    DEBUG_MODE.load(Ordering::SeqCst)
+}
+
+/// 条件打印调试信息，只有在调试模式开启时才打印
+#[macro_export]
+macro_rules! debug_println {
+    ($($arg:tt)*) => {
+        if $crate::is_debug_mode() {
+            println!($($arg)*);
+        }
+    };
+}
 
 /// 运行一个NJIL或NJIS文件
 pub fn run_file<P: AsRef<Path>>(file_path: P) -> Result<serde_json::Value, error::NjilError> {

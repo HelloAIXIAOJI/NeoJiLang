@@ -1,0 +1,174 @@
+{
+  "import": [
+    "!io"
+  ],
+  "program": {
+    "greet": {
+      "body": [
+        {
+          "print": {
+            "string.concat": [
+              "你好，",
+              {
+                "var": "$1"
+              },
+              "！"
+            ]
+          }
+        },
+        {
+          "return": {
+            "string.concat": [
+              "欢迎，",
+              {
+                "var": "$1"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "calculate": {
+      "body": [
+        {
+          "var.set": {
+            "result": {
+              "math.add": [
+                {
+                  "var": "$1"
+                },
+                {
+                  "var": "$2"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "计算结果: ",
+              {
+                "var": "$1"
+              },
+              " + ",
+              {
+                "var": "$2"
+              },
+              " = ",
+              {
+                "var": "result"
+              }
+            ]
+          }
+        },
+        {
+          "return": {
+            "var": "result"
+          }
+        }
+      ]
+    },
+    "main": {
+      "body": [
+        {
+          "print": "NeoJiLang 函数调用演示"
+        },
+        {
+          "print": "------------------------------"
+        },
+        {
+          "print": "1. 简单函数调用"
+        },
+        {
+          "var.set": {
+            "result": {
+              "function.call": {
+                "name": "greet",
+                "args": ["张三"]
+              }
+            }
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "函数返回值: ",
+              {
+                "var": "result"
+              }
+            ]
+          }
+        },
+        {
+          "print": "------------------------------"
+        },
+        {
+          "print": "2. 带参数的函数调用"
+        },
+        {
+          "var.set": {
+            "sum": {
+              "function.call": {
+                "name": "calculate",
+                "args": [10, 20]
+              }
+            }
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "calculate函数返回值: ",
+              {
+                "var": "sum"
+              }
+            ]
+          }
+        },
+        {
+          "print": "------------------------------"
+        },
+        {
+          "print": "3. 嵌套函数调用"
+        },
+        {
+          "var.set": {
+            "nested_result": {
+              "function.call": {
+                "name": "greet",
+                "args": [
+                  {
+                    "function.call": {
+                      "name": "calculate",
+                      "args": [5, 15]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "print": {
+            "string.concat": [
+              "嵌套调用结果: ",
+              {
+                "var": "nested_result"
+              }
+            ]
+          }
+        },
+        {
+          "print": "------------------------------"
+        },
+        {
+          "print": "函数调用演示完成"
+        },
+        {
+          "return": "演示完成"
+        }
+      ]
+    }
+  }
+} 

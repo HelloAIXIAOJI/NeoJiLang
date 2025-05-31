@@ -1,0 +1,268 @@
+{
+  "program": {
+    "main": {
+      "body": [
+        {
+          "print": "===== Arithmetic Operations Demo ====="
+        },
+        {
+          "print": "\n1. Addition:"
+        },
+        {
+          "var.set": {
+            "name": "sum",
+            "value": {
+              "math.add": [5, 10, 15]
+            }
+          }
+        },
+        {
+          "print": "  5 + 10 + 15 = ${var:sum}"
+        },
+        {
+          "print": "\n2. Subtraction:"
+        },
+        {
+          "var.set": {
+            "name": "difference",
+            "value": {
+              "math.subtract": {
+                "minuend": 50,
+                "subtrahends": [10, 5, 2]
+              }
+            }
+          }
+        },
+        {
+          "print": "  50 - 10 - 5 - 2 = ${var:difference}"
+        },
+        {
+          "print": "\n3. Multiplication:"
+        },
+        {
+          "var.set": {
+            "name": "product",
+            "value": {
+              "math.multiply": [2, 3, 4]
+            }
+          }
+        },
+        {
+          "print": "  2 * 3 * 4 = ${var:product}"
+        },
+        {
+          "print": "\n4. Division:"
+        },
+        {
+          "var.set": {
+            "name": "quotient",
+            "value": {
+              "math.divide": {
+                "dividend": 100,
+                "divisors": [5, 2]
+              }
+            }
+          }
+        },
+        {
+          "print": "  100 / 5 / 2 = ${var:quotient}"
+        },
+        {
+          "print": "\n5. Modulo:"
+        },
+        {
+          "var.set": {
+            "name": "remainder",
+            "value": {
+              "math.modulo": {
+                "dividend": 17,
+                "divisor": 5
+              }
+            }
+          }
+        },
+        {
+          "print": "  17 % 5 = ${var:remainder}"
+        },
+        {
+          "print": "\n===== Comparison Operations Demo ====="
+        },
+        {
+          "print": "\n1. Equality:"
+        },
+        {
+          "var.set": {
+            "name": "eq_result1",
+            "value": {
+              "math.compare": {
+                "left": 10,
+                "right": 10,
+                "op": "=="
+              }
+            }
+          }
+        },
+        {
+          "var.set": {
+            "name": "eq_result2",
+            "value": {
+              "math.compare": {
+                "left": 10,
+                "right": 20,
+                "op": "=="
+              }
+            }
+          }
+        },
+        {
+          "print": "  10 == 10: ${var:eq_result1}"
+        },
+        {
+          "print": "  10 == 20: ${var:eq_result2}"
+        },
+        {
+          "print": "\n2. Inequality:"
+        },
+        {
+          "var.set": {
+            "name": "neq_result",
+            "value": {
+              "math.compare": {
+                "left": "hello",
+                "right": "world",
+                "op": "!="
+              }
+            }
+          }
+        },
+        {
+          "print": "  \"hello\" != \"world\": ${var:neq_result}"
+        },
+        {
+          "print": "\n3. Greater Than:"
+        },
+        {
+          "var.set": {
+            "name": "gt_result",
+            "value": {
+              "math.compare": {
+                "left": 20,
+                "right": 10,
+                "op": ">"
+              }
+            }
+          }
+        },
+        {
+          "print": "  20 > 10: ${var:gt_result}"
+        },
+        {
+          "print": "\n4. Less Than or Equal:"
+        },
+        {
+          "var.set": {
+            "name": "lte_result1",
+            "value": {
+              "math.compare": {
+                "left": 5,
+                "right": 10,
+                "op": "<="
+              }
+            }
+          }
+        },
+        {
+          "var.set": {
+            "name": "lte_result2",
+            "value": {
+              "math.compare": {
+                "left": 10,
+                "right": 10,
+                "op": "<="
+              }
+            }
+          }
+        },
+        {
+          "print": "  5 <= 10: ${var:lte_result1}"
+        },
+        {
+          "print": "  10 <= 10: ${var:lte_result2}"
+        },
+        {
+          "print": "\n5. String Comparison:"
+        },
+        {
+          "var.set": {
+            "name": "str_compare",
+            "value": {
+              "math.compare": {
+                "left": "apple",
+                "right": "banana",
+                "op": "<"
+              }
+            }
+          }
+        },
+        {
+          "print": "  \"apple\" < \"banana\": ${var:str_compare}"
+        },
+        {
+          "print": "\n===== Combined Operations Demo ====="
+        },
+        {
+          "var.set": {
+            "name": "complex_result",
+            "value": {
+              "math.compare": {
+                "left": {
+                  "math.add": [10, 15]
+                },
+                "right": {
+                  "math.multiply": [5, 5]
+                },
+                "op": "=="
+              }
+            }
+          }
+        },
+        {
+          "print": "  (10 + 15) == (5 * 5): ${var:complex_result}"
+        },
+        {
+          "var.set": {
+            "name": "nested_calc",
+            "value": {
+              "math.add": [
+                {
+                  "math.multiply": [3, 4]
+                },
+                {
+                  "math.divide": {
+                    "dividend": 10,
+                    "divisors": [2]
+                  }
+                },
+                {
+                  "math.modulo": {
+                    "dividend": 7,
+                    "divisor": 3
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "print": "  3 * 4 + 10 / 2 + 7 % 3 = ${var:nested_calc}"
+        },
+        {
+          "print": "\n===== Demo Complete ====="
+        },
+        {
+          "return": "Demo completed successfully"
+        }
+      ]
+    }
+  }
+} 
