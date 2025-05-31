@@ -1,0 +1,42 @@
+{
+  "program": {
+    "functions": {
+      "main": {
+        "body": [
+          {"print": "常量系统演示\n"},
+          {"return": {"function.call": {"name": "run_demo"}}}
+        ]
+      },
+      "run_demo": {
+        "body": [
+          {"print": "=== 定义单个常量 ===\n"},
+          {"const.set": {"name": "PI", "value": 3.14159}},
+          {"print": "PI的值为: ${const:PI}\n"},
+          {"return": true}
+        ]
+      },
+      "try_set_constant": {
+        "body": [
+          {"var.set": {"name": "const_name", "value": {"var": "$1"}}},
+          {"var.set": {"name": "const_value", "value": {"var": "$2"}}},
+          
+          {"print": "尝试设置常量 ${var:const_name} 的值为 ${var:const_value}..."},
+          
+          {"if": {
+            "condition": {"has_constant": {"var": "const_name"}},
+            "then": [
+              {"print": " 失败\n"},
+              {"print": "原因: 常量已存在，不可修改\n"},
+              {"return": false}
+            ],
+            "else": [
+              {"const.set": {"name": {"var": "const_name"}, "value": {"var": "const_value"}}},
+              {"print": " 成功\n"},
+              {"return": true}
+            ]
+          }}
+        ]
+      }
+    }
+  }
+} 

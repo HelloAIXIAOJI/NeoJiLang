@@ -1,0 +1,62 @@
+[
+  {"print": "常量系统演示\n"},
+
+  {"print": "=== 定义单个常量 ===\n"},
+  {"const.set": {"name": "PI", "value": 3.14159}},
+  {"print": "PI的值为: ${const:PI}\n"},
+
+  {"print": "=== 定义多个常量 ===\n"},
+  {"const.set.m": {
+    "MAX_USERS": 100,
+    "APP_NAME": "NeoJiLang应用",
+    "APP_VERSION": "0.1.10",
+    "COLORS": ["红", "绿", "蓝"],
+    "CONFIG": {
+      "max_retry": 3,
+      "timeout": 1000
+    }
+  }},
+
+  {"print": "应用名称: ${const:APP_NAME}\n"},
+  {"print": "应用版本: ${const:APP_VERSION}\n"},
+  {"print": "最大用户数: ${const:MAX_USERS}\n"},
+
+  {"print": "\n=== 在表达式中使用常量 ===\n"},
+  {"var.set.m": {"radius": 5}},
+  {"var.set.m": {"area": {"math.multiply": [
+    {"math.multiply": [{"const": "PI"}, {"var": "radius"}]},
+    {"var": "radius"}
+  ]}}},
+  {"print": "半径为${var:radius}的圆面积是: ${var:area}\n"},
+
+  {"print": "\n=== 访问嵌套常量 ===\n"},
+  {"print": "最大重试次数: ${const:CONFIG.max_retry}\n"},
+  {"print": "超时时间: ${const:CONFIG.timeout}毫秒\n"},
+
+  {"print": "\n=== 使用常量数组 ===\n"},
+  {"print": "颜色列表:"},
+  {"loop.foreach": {
+    "collection": {"const": "COLORS"},
+    "var": "item",
+    "body": [
+      {"print": " ${var:item}"}
+    ]
+  }},
+  {"print": "\n"},
+
+  {"print": "\n=== 尝试修改常量（将会被拒绝） ===\n"},
+  {"print": "尝试设置常量 PI 的值为 3.14..."},
+  {"if": {
+    "condition": {"has_constant": "PI"},
+    "then": [
+      {"print": " 失败\n"},
+      {"print": "✓ 成功阻止了对常量的修改，原因: 常量已存在，不可修改\n"}
+    ],
+    "else": [
+      {"const.set": {"name": "PI", "value": 3.14}},
+      {"print": " 成功\n"}
+    ]
+  }},
+  
+  {"print": "\n=== 演示完成 ===\n"}
+] 

@@ -5,6 +5,8 @@ use crate::statements::StatementHandler;
 use crate::builtin::BuiltinModuleRegistry;
 use crate::debug_println;
 use crate::preprocessor::Preprocessor;
+use crate::utils::path;
+use crate::utils::path::PathPart;
 use serde_json::Value;
 use std::collections::{HashMap, HashSet};
 use std::fs;
@@ -14,6 +16,7 @@ use regex;
 /// 解释器，负责执行NeoJiLang代码
 pub struct Interpreter {
     pub(crate) variables: HashMap<String, Value>,
+    pub(crate) constants: HashMap<String, Value>,
     pub(crate) statement_handlers: HashMap<String, Box<dyn StatementHandler>>,
     pub(crate) builtin_modules: BuiltinModuleRegistry,
     pub(crate) returning: Option<Value>,
@@ -27,6 +30,7 @@ impl Interpreter {
     pub fn new() -> Self {
         Self {
             variables: HashMap::new(),
+            constants: HashMap::new(),
             statement_handlers: HashMap::new(),
             builtin_modules: BuiltinModuleRegistry::new(),
             returning: None,
@@ -40,6 +44,7 @@ impl Interpreter {
     pub fn create_clean_instance(&self) -> Self {
         let mut new_instance = Self {
             variables: HashMap::new(),
+            constants: self.constants.clone(),
             statement_handlers: HashMap::new(),
             builtin_modules: self.builtin_modules.clone_empty(),
             returning: None,
@@ -228,6 +233,15 @@ impl Interpreter {
                         }
                     }
                     
+                    // 特殊处理嵌套常量路径的情况
+                    if key == "const" && value.is_string() {
+                        if let Value::String(const_path) = value {
+                            if const_path.contains('.') || const_path.contains('[') {
+                                return statements::constant::CONST_HANDLER.handle(self, value);
+                            }
+                        }
+                    }
+                    
                     // 处理函数调用
                     if key == "function.call" || key == "call" || key == "func.call" {
                         return statements::function_call::FUNCTION_CALL_HANDLER.handle(self, value);
@@ -266,85 +280,37 @@ impl Interpreter {
     pub fn value_to_string(&mut self, value: &Value) -> String {
         match value {
             Value::String(s) => {
-                // 处理变量引用，格式为 ${var:name}
-                let mut result = s.clone();
-                let var_pattern = regex::Regex::new(r"\$\{var:([^}]+)\}").unwrap();
+                // 先替换变量引用
+                let with_vars_replaced = self.replace_var_in_string(s);
                 
-                // 收集所有需要替换的变量
-                let mut replacements = Vec::new();
-                for cap in var_pattern.captures_iter(&result) {
-                    let var_name = cap[1].to_string();
-                    let full_match = cap[0].to_string();
-                    
-                    debug_println!("[value_to_string] 尝试替换变量: {}", var_name);
-                    
-                    // 获取变量值
-                    let var_value = if let Some(val) = self.variables.get(&var_name) {
-                        debug_println!("[value_to_string] 找到变量 {} 的值: {}", var_name, serde_json::to_string(val).unwrap());
-                        val.clone()
-                    } else if var_name.contains('.') || var_name.contains('[') {
-                        // 尝试处理嵌套变量路径
-                        debug_println!("[value_to_string] 尝试解析嵌套变量路径: {}", var_name);
-                        match statements::var::get_nested_variable(self, &var_name) {
-                            Ok(nested_val) => {
-                                debug_println!("[value_to_string] 找到嵌套变量值: {}", serde_json::to_string(&nested_val).unwrap());
-                                nested_val
-                            },
-                            Err(e) => {
-                                debug_println!("[value_to_string] 获取嵌套变量失败: {:?}", e);
-                                Value::String(format!("undefined:{}", var_name))
-                            }
-                        }
-                    } else {
-                        debug_println!("[value_to_string] 变量 {} 未定义", var_name);
-                        Value::String(format!("undefined:{}", var_name))
-                    };
-                    
-                    replacements.push((full_match, var_value));
-                }
-                
-                // 执行替换
-                for (pattern, var_value) in replacements {
-                    let replacement = self.value_to_string(&var_value);
-                    debug_println!("[value_to_string] 替换 {} 为 {}", pattern, replacement);
-                    result = result.replace(&pattern, &replacement);
-                }
-                
-                result
+                // 再替换常量引用
+                self.replace_constant_in_string(&with_vars_replaced)
             },
-            Value::Number(n) => n.to_string(),
+            Value::Number(n) => {
+                if let Some(i) = n.as_i64() {
+                    i.to_string()
+                } else if let Some(f) = n.as_f64() {
+                    f.to_string()
+                } else {
+                    n.to_string()
+                }
+            },
             Value::Bool(b) => b.to_string(),
             Value::Null => "null".to_string(),
             Value::Array(arr) => {
-                let items: Vec<String> = arr
-                    .iter()
-                    .map(|v| self.value_to_string(v))
-                    .collect();
-                format!("[{}]", items.join(", "))
-            }
-            Value::Object(obj) => {
-                // 尝试执行算术运算或比较运算
-                match self.execute_operation(value) {
-                    Ok(result) if result != *value => {
-                        // 如果执行成功且结果不同于原值，返回结果的字符串表示
-                        return self.value_to_string(&result);
-                    }
-                    _ => {
-                        // 尝试将对象序列化为JSON字符串
-                        match serde_json::to_string(obj) {
-                            Ok(json) => json,
-                            Err(_) => {
-                                // 如果序列化失败，使用简单的键值对格式
-                                let pairs: Vec<String> = obj
-                                    .iter()
-                                    .map(|(k, v)| format!("{}: {}", k, self.value_to_string(v)))
-                                    .collect();
-                                format!("{{{}}}", pairs.join(", "))
-                            }
-                        }
-                    }
+                let mut parts = Vec::new();
+                for item in arr {
+                    parts.push(self.value_to_string(item));
                 }
-            }
+                parts.join(", ")
+            },
+            Value::Object(obj) => {
+                let mut parts = Vec::new();
+                for (key, val) in obj {
+                    parts.push(format!("{}: {}", key, self.value_to_string(val)));
+                }
+                format!("{{{}}}", parts.join(", "))
+            },
         }
     }
     
@@ -445,6 +411,115 @@ impl Interpreter {
         
         // 如果没有找到，可以在未来实现在导入的模块中查找
         None
+    }
+
+    /// 检查常量是否存在
+    pub fn has_constant(&self, name: &str) -> bool {
+        self.constants.contains_key(name)
+    }
+
+    /// 获取常量值
+    pub fn get_constant(&self, name: &str) -> Option<&Value> {
+        self.constants.get(name)
+    }
+
+    /// 将变量字符串模式替换为实际值
+    fn replace_var_in_string(&mut self, input: &str) -> String {
+        let var_pattern = regex::Regex::new(r"\$\{var:([^}]+)\}").unwrap();
+        let mut result = input.to_string();
+        
+        // 收集所有需要替换的变量
+        let mut replacements = Vec::new();
+        for cap in var_pattern.captures_iter(&result) {
+            let var_name = cap[1].to_string();
+            let full_match = cap[0].to_string();
+            
+            debug_println!("[replace_var_in_string] 尝试替换变量: {}", var_name);
+            
+            // 获取变量值
+            let var_value = if let Some(val) = self.variables.get(&var_name) {
+                debug_println!("[replace_var_in_string] 找到变量 {} 的值: {}", var_name, serde_json::to_string(val).unwrap());
+                val.clone()
+            } else if var_name.contains('.') || var_name.contains('[') {
+                // 尝试处理嵌套变量路径
+                debug_println!("[replace_var_in_string] 尝试解析嵌套变量路径: {}", var_name);
+                match statements::var::get_nested_variable(self, &var_name) {
+                    Ok(nested_val) => {
+                        debug_println!("[replace_var_in_string] 找到嵌套变量值: {}", serde_json::to_string(&nested_val).unwrap());
+                        nested_val
+                    },
+                    Err(e) => {
+                        debug_println!("[replace_var_in_string] 获取嵌套变量失败: {:?}", e);
+                        Value::String(format!("undefined:{}", var_name))
+                    }
+                }
+            } else {
+                debug_println!("[replace_var_in_string] 变量 {} 未定义", var_name);
+                Value::String(format!("undefined:{}", var_name))
+            };
+            
+            replacements.push((full_match, var_value));
+        }
+        
+        // 执行替换
+        for (pattern, var_value) in replacements {
+            let replacement = self.value_to_string(&var_value);
+            debug_println!("[replace_var_in_string] 替换 {} 为 {}", pattern, replacement);
+            result = result.replace(&pattern, &replacement);
+        }
+        
+        result
+    }
+
+    /// 将常量字符串模式替换为实际值
+    fn replace_constant_in_string(&mut self, input: &str) -> String {
+        let re = regex::Regex::new(r"\$\{const:([^}]+)\}").unwrap();
+        
+        let result = re.replace_all(input, |caps: &regex::Captures| {
+            let const_path = &caps[1];
+            
+            // 处理嵌套路径的常量访问
+            if const_path.contains('.') || const_path.contains('[') {
+                // 1. 解析路径
+                let path_parts = match path::parse_path(const_path) {
+                    Ok(parts) => parts,
+                    Err(_) => return format!("${{const:{}}}", const_path), // 保持原样
+                };
+                
+                // 2. 获取基础常量名
+                let base_const_name = match &path_parts[0] {
+                    path::PathPart::ObjectProperty(name) => name.clone(),
+                    _ => return format!("${{const:{}}}", const_path), // 保持原样
+                };
+                
+                // 3. 检查基础常量是否存在
+                if !self.constants.contains_key(&base_const_name) {
+                    return format!("${{const:{}}}", const_path); // 保持原样
+                }
+                
+                // 4. 克隆基础常量值，避免借用冲突
+                let base_value = self.constants.get(&base_const_name).unwrap().clone();
+                
+                // 5. 使用剩余路径部分获取嵌套值
+                let remaining_path = &path_parts[1..];
+                match path::get_nested_value(&base_value, remaining_path) {
+                    Ok(value) => self.value_to_string(value),
+                    Err(_) => format!("${{const:{}}}", const_path), // 保持原样
+                }
+            } else {
+                // 普通常量访问
+                // 克隆常量值，避免借用冲突
+                let const_value_opt = self.get_constant(const_path).map(|v| v.clone());
+                
+                if let Some(const_value) = const_value_opt {
+                    self.value_to_string(&const_value)
+                } else {
+                    format!("${{const:{}}}", const_path) // 保持原样
+                }
+            }
+        });
+        
+        result.to_string()
     }
 }
 

@@ -197,6 +197,76 @@ NeoJiLang 提供了多个内置模块，可以通过 `import` 语句导入：
 
 支持的样式：`bold`（加粗）, `underline`（下划线）, `blink`（闪烁）
 
+### 常量系统
+
+NeoJiLang支持定义和使用常量，常量是一旦定义就不能修改的值：
+
+- `const.set` - 定义单个常量
+  ```json
+  {"const.set": {"name": "PI", "value": 3.14159}}
+  {"const.set": {"name": "APP_NAME", "value": "我的NeoJiLang应用"}}
+  ```
+
+- `const.set.m` - 批量定义多个常量（简洁格式）
+  ```json
+  {"const.set.m": {
+    "MAX_USERS": 100,
+    "APP_VERSION": "1.0.0",
+    "COLORS": ["红", "绿", "蓝"],
+    "CONFIG": {
+      "timeout": 5000,
+      "max_retry": 3
+    }
+  }}
+  ```
+  别名：`const.m`
+
+- `const` - 获取常量值
+  ```json
+  {"print": {"const": "APP_NAME"}}
+  {"var.set": {"name": "timeout", "value": {"const": "CONFIG.timeout"}}}
+  ```
+
+- `has_constant` - 检查常量是否存在
+  ```json
+  {"if": {
+    "condition": {"has_constant": "CONFIG"},
+    "then": [
+      {"print": "CONFIG常量已定义"}
+    ],
+    "else": [
+      {"print": "CONFIG常量未定义"}
+    ]
+  }}
+  ```
+  别名：`const.has`, `const.exists`
+
+- 字符串中的常量引用：使用 `${const:名称}` 格式
+  ```json
+  {"print": "应用名称: ${const:APP_NAME}, 版本: ${const:APP_VERSION}"}
+  {"print": "配置的超时时间: ${const:CONFIG.timeout}毫秒"}
+  ```
+
+特点：
+- 常量一旦定义不可修改，尝试重新定义会抛出错误
+- 常量值可以是任何有效的JSON值（数字、字符串、布尔值、数组、对象等）
+- 支持嵌套访问，如 `CONFIG.timeout` 或 `COLORS[0]`
+- 常量在创建新解释器实例时会被保留，便于跨函数使用
+- 适合存储配置信息、数学常数和其他不变的值
+
+示例 - 使用常量进行圆面积计算：
+```json
+[
+  {"const.set": {"name": "PI", "value": 3.14159}},
+  {"var.set": {"name": "radius", "value": 5}},
+  {"var.set": {"name": "area", "value": {"math.multiply": [
+    {"math.multiply": [{"const": "PI"}, {"var": "radius"}]},
+    {"var": "radius"}
+  ]}}},
+  {"print": "半径为${var:radius}的圆面积是: ${var:area}"}
+]
+```
+
 示例 - 创建进度条：
 ```json
 [
@@ -224,81 +294,3 @@ NeoJiLang 提供了多个内置模块，可以通过 `import` 语句导入：
 ```
 
 ## 变量设置
-
-NeoJiLang 提供了两种设置变量的格式：
-
-### 1. 结构化的 name/value 格式 (var.set)
-
-适合设置单个变量，结构清晰：
-
-```json
-{
-  "var.set": {
-    "name": "变量名",
-    "value": "变量值"
-  }
-}
-```
-
-例如：
-
-```json
-{
-  "var.set": {
-    "name": "message",
-    "value": "Hello World"
-  }
-}
-```
-
-### 2. 简洁的键值对格式 (var.set.m)
-
-适合一次设置多个变量或复杂数据结构：
-
-```json
-{
-  "var.set.m": {
-    "变量名1": "值1",
-    "变量名2": "值2",
-    "变量名3": {
-      "嵌套属性1": "嵌套值1",
-      "嵌套属性2": "嵌套值2"
-    }
-  }
-}
-```
-
-例如：
-
-```json
-{
-  "var.set.m": {
-    "user": "张三",
-    "age": 25,
-    "address": {
-      "city": "北京",
-      "district": "海淀"
-    },
-    "skills": ["编程", "绘画"]
-  }
-}
-```
-
-也可以直接修改嵌套属性：
-
-```json
-{
-  "var.set.m": {
-    "user.name": "李四",
-    "user.address.city": "上海"
-  }
-}
-```
-
-## 版本历史
-
-查看[CHANGELOG.md](CHANGELOG.md)了解详细的版本更新历史。
-
-## 许可证
-
-MIT

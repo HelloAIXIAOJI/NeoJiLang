@@ -16,6 +16,7 @@ pub mod type_convert;
 pub mod arithmetic;
 pub mod function_call;
 pub mod sleep;
+pub mod constant;
 
 use print::PRINT_HANDLER;
 use string::STRING_CONCAT_HANDLER;
@@ -25,6 +26,7 @@ use json::{JSON_NEW_HANDLER, JSON_GET_HANDLER, JSON_SET_HANDLER};
 use control_flow::get_all_handlers as get_all_control_flow_handlers;
 pub use control_flow::{IF_HANDLER, WHILE_LOOP_HANDLER, FOR_LOOP_HANDLER, FOREACH_LOOP_HANDLER, BREAK_HANDLER, CONTINUE_HANDLER};
 use sleep::SLEEP_HANDLER;
+use constant::{CONST_HANDLER, CONST_SET_HANDLER, CONST_SET_MULTI_HANDLER, CONST_HAS_HANDLER};
 
 use logic::{
     LOGIC_AND_HANDLER,
@@ -69,6 +71,12 @@ impl StatementRegistry {
         registry.register_handler(&RETURN_HANDLER);
         registry.register_handler(&STRING_CONCAT_HANDLER);
         registry.register_handler(&SLEEP_HANDLER);
+        
+        // 注册常量语句处理器
+        registry.register_handler(&CONST_HANDLER);
+        registry.register_handler(&CONST_SET_HANDLER);
+        registry.register_handler(&CONST_SET_MULTI_HANDLER);
+        registry.register_handler(&CONST_HAS_HANDLER);
         
         // 注册JSON语句处理器
         registry.register_handler(&JSON_NEW_HANDLER);
@@ -155,6 +163,17 @@ pub fn handle_statement(interpreter: &mut Interpreter, statement: &Value) -> Res
                 }
             }
             
+            // 检查是否为常量访问
+            if key == "const" && value.is_string() {
+                if let Value::String(const_path) = value {
+                    // 特殊处理嵌套常量路径
+                    if const_path.contains('.') || const_path.contains('[') {
+                        // 使用 ConstHandler 处理嵌套常量路径
+                        return CONST_HANDLER.handle(interpreter, value);
+                    }
+                }
+            }
+            
             // 获取语句处理器
             let handler: Option<&'static dyn StatementHandler> = {
                 if let Ok(registry) = get_registry().lock() {
@@ -183,6 +202,15 @@ pub fn handle_statement(interpreter: &mut Interpreter, statement: &Value) -> Res
                         var_obj.insert("var".to_string(), Value::String(key.to_string()));
                         let var_statement = Value::Object(var_obj);
                         return interpreter.evaluate_value(&var_statement);
+                    }
+                    
+                    // 检查第一部分是否是常量
+                    if interpreter.has_constant(base_var) {
+                        // 这可能是一个嵌套常量访问
+                        let mut const_obj = serde_json::Map::new();
+                        const_obj.insert("const".to_string(), Value::String(key.to_string()));
+                        let const_statement = Value::Object(const_obj);
+                        return interpreter.evaluate_value(&const_statement);
                     }
                 }
             }
