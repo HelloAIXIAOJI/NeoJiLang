@@ -170,6 +170,12 @@ NeoJiLang 提供了多个内置模块，可以通过 `import` 语句导入：
   {"shell.style": {"text": "加粗文本", "bold": true}}
   {"shell.style": {"text": "下划线文本", "underline": true}}
   ```
+- `shell.style_color` - 同时设置文本颜色和样式（简化写法）
+  ```json
+  {"shell.style_color": {"text": "红色加粗文本", "fg": "red", "bold": true}}
+  {"shell.style_color": {"text": "蓝底白字加粗下划线", "fg": "white", "bg": "blue", "bold": true, "underline": true}}
+  ```
+  别名：`shell.cstyle`, `shell.color_style`
 - `shell.clear_line` - 清除当前行
   ```json
   {"shell.clear_line": true}
@@ -188,6 +194,8 @@ NeoJiLang 提供了多个内置模块，可以通过 `import` 语句导入：
   ```
 
 支持的颜色：`black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `white`
+
+支持的样式：`bold`（加粗）, `underline`（下划线）, `blink`（闪烁）
 
 示例 - 创建进度条：
 ```json

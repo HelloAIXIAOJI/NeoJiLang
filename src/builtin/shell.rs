@@ -20,6 +20,7 @@ impl ShellModule {
                 &WRITE_LINE_HANDLER,
                 &OVERWRITE_HANDLER,
                 &STYLE_HANDLER,
+                &STYLE_COLOR_HANDLER,
             ],
         }
     }
@@ -341,4 +342,109 @@ impl StatementHandler for StyleHandler {
     fn name(&self) -> &'static str {
         "shell.style"
     }
-} 
+}
+
+/// 语句处理器：同时设置文本颜色和样式
+pub struct StyleColorHandler;
+
+// 静态实例
+pub static STYLE_COLOR_HANDLER: StyleColorHandler = StyleColorHandler;
+
+impl StatementHandler for StyleColorHandler {
+    fn handle(&self, interpreter: &mut Interpreter, value: &Value) -> Result<Value, NjilError> {
+        if let Value::Object(params) = value {
+            // 获取文本内容
+            let text = match params.get("text") {
+                Some(text_value) => {
+                    let evaluated_text = interpreter.evaluate_value(text_value)?;
+                    interpreter.value_to_string(&evaluated_text)
+                },
+                None => return Err(NjilError::ExecutionError("shell.style_color需要text参数".to_string())),
+            };
+
+            // 获取前景色
+            let fg_color = if let Some(fg_value) = params.get("fg") {
+                let evaluated_fg = interpreter.evaluate_value(fg_value)?;
+                let fg_str = interpreter.value_to_string(&evaluated_fg);
+                AnsiColor::get_fg_color(&fg_str)
+            } else {
+                AnsiColor::FG_DEFAULT
+            };
+
+            // 获取背景色
+            let bg_color = if let Some(bg_value) = params.get("bg") {
+                let evaluated_bg = interpreter.evaluate_value(bg_value)?;
+                let bg_str = interpreter.value_to_string(&evaluated_bg);
+                AnsiColor::get_bg_color(&bg_str)
+            } else {
+                AnsiColor::BG_DEFAULT
+            };
+
+            // 判断是否加粗
+            let bold = if let Some(bold_value) = params.get("bold") {
+                let evaluated_bold = interpreter.evaluate_value(bold_value)?;
+                match evaluated_bold {
+                    Value::Bool(b) => b,
+                    _ => false,
+                }
+            } else {
+                false
+            };
+
+            // 判断是否下划线
+            let underline = if let Some(underline_value) = params.get("underline") {
+                let evaluated_underline = interpreter.evaluate_value(underline_value)?;
+                match evaluated_underline {
+                    Value::Bool(b) => b,
+                    _ => false,
+                }
+            } else {
+                false
+            };
+
+            // 判断是否闪烁
+            let blink = if let Some(blink_value) = params.get("blink") {
+                let evaluated_blink = interpreter.evaluate_value(blink_value)?;
+                match evaluated_blink {
+                    Value::Bool(b) => b,
+                    _ => false,
+                }
+            } else {
+                false
+            };
+
+            // 拼接ANSI代码和文本
+            let mut result = String::new();
+            result.push_str(fg_color);
+            result.push_str(bg_color);
+            
+            if bold {
+                result.push_str(AnsiColor::STYLE_BOLD);
+            }
+            if underline {
+                result.push_str(AnsiColor::STYLE_UNDERLINE);
+            }
+            if blink {
+                result.push_str(AnsiColor::STYLE_BLINK);
+            }
+            
+            result.push_str(&text);
+            result.push_str(AnsiColor::STYLE_RESET);
+
+            // 输出到控制台
+            print!("{}", result);
+            
+            Ok(Value::Null)
+        } else {
+            Err(NjilError::ExecutionError("shell.style_color需要一个对象作为参数".to_string()))
+        }
+    }
+
+    fn name(&self) -> &'static str {
+        "shell.style_color"
+    }
+    
+    fn aliases(&self) -> Vec<&'static str> {
+        vec!["shell.cstyle", "shell.color_style"]
+    }
+}

@@ -1,0 +1,48 @@
+[
+  {"print": "Shell样式颜色组合演示\n"},
+  
+  {"print": "=== 样式和颜色组合效果 ===\n"},
+  
+  {"shell.style_color": {"text": "红色加粗文本", "fg": "red", "bold": true}},
+  {"print": "\n"},
+  
+  {"shell.style_color": {"text": "绿色下划线文本", "fg": "green", "underline": true}},
+  {"print": "\n"},
+  
+  {"shell.style_color": {"text": "黄色闪烁文本", "fg": "yellow", "blink": true}},
+  {"print": "\n"},
+  
+  {"shell.style_color": {"text": "蓝底白字加粗下划线", "fg": "white", "bg": "blue", "bold": true, "underline": true}},
+  {"print": "\n"},
+  
+  {"print": "\n=== 使用别名 ===\n"},
+  
+  {"shell.cstyle": {"text": "使用cstyle别名：青色加粗", "fg": "cyan", "bold": true}},
+  {"print": "\n"},
+  
+  {"shell.color_style": {"text": "使用color_style别名：品红色下划线", "fg": "magenta", "underline": true}},
+  {"print": "\n"},
+  
+  {"print": "\n=== 进度条示例（使用样式颜色组合）===\n"},
+  {"var.set.m": {"progress": 0, "total": 100, "delay": 50}},
+  {"loop.while": {
+    "condition": {"math.compare": {"left": {"var": "progress"}, "op": "<", "right": {"var": "total"}}},
+    "body": [
+      {"shell.clear_line": true},
+      {"shell.write": "进度: "},
+      {"var.set.m": {"progress": {"math.add": [{"var": "progress"}, 5]}}},
+      {"var.set.m": {"bar": ""}},
+      {"loop.for": {
+        "count": {"math.divide": {"dividend": {"var": "progress"}, "divisor": 5}},
+        "body": {"var.set.m": {"bar": {"string.concat": [{"var": "bar"}, "█"]}}}
+      }},
+      {"shell.style_color": {"text": {"var": "bar"}, "fg": "cyan", "bold": true}},
+      {"shell.write": " "},
+      {"shell.style_color": {"text": {"string.concat": [{"var": "progress"}, "%"]}, "fg": "yellow", "bold": true, "underline": true}},
+      {"sleep": {"var": "delay"}}
+    ]
+  }},
+  {"shell.write_line": ""},
+  {"shell.style_color": {"text": "进度完成！", "fg": "green", "bold": true, "blink": true}},
+  {"print": "\n"}
+] 
