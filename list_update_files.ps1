@@ -28,8 +28,37 @@ $subDirectories = Get-ChildItem -Path $updateFolderPath -Directory
 if ($subDirectories.Count -eq 0) {
     [void]$output.AppendLine("No subdirectories found")
 } else {
-    # Iterate through each subdirectory
-    foreach ($dir in $subDirectories) {
+    # Sort subdirectories by version number
+    $sortedDirectories = $subDirectories | ForEach-Object {
+        # Extract version from directory name (format: 0.1.0-2025-05-28-12-19-04)
+        if ($_.Name -match '^(\d+)\.(\d+)\.(\d+)') {
+            $major = [int]$matches[1]
+            $minor = [int]$matches[2]
+            $patch = [int]$matches[3]
+            
+            # Create a custom object with version components for sorting
+            [PSCustomObject]@{
+                Directory = $_
+                Major = $major
+                Minor = $minor
+                Patch = $patch
+                FullName = $_.Name
+            }
+        } else {
+            # If directory name doesn't match version pattern, put it at the end
+            [PSCustomObject]@{
+                Directory = $_
+                Major = [int]::MaxValue
+                Minor = [int]::MaxValue
+                Patch = [int]::MaxValue
+                FullName = $_.Name
+            }
+        }
+    } | Sort-Object Major, Minor, Patch
+    
+    # Iterate through each sorted subdirectory
+    foreach ($dirInfo in $sortedDirectories) {
+        $dir = $dirInfo.Directory
         # Add subdirectory name
         [void]$output.AppendLine("")
         [void]$output.AppendLine("Directory: $($dir.Name)")
