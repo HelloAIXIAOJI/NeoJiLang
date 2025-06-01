@@ -1,0 +1,48 @@
+[
+  {"print": "===== 文件系统功能演示 =====\n"},
+  
+  {"print": "1. 检查文件是否存在:"},
+  {"var.set": {"name": "readme_exists", "value": {"system.fs.exists": "README.md"}}},
+  {"println": {"content": {"string.concat": ["README.md 文件存在: ", {"var": "readme_exists"}]}}},
+  
+  {"print": "\n2. 创建目录:"},
+  {"system.fs.mkdir": {"path": "temp_demo", "recursive": true}},
+  {"println": {"content": "创建了 temp_demo 目录"}},
+  
+  {"print": "\n3. 检查是否为目录:"},
+  {"var.set": {"name": "is_dir", "value": {"system.fs.isDir": "temp_demo"}}},
+  {"println": {"content": {"string.concat": ["temp_demo 是目录: ", {"var": "is_dir"}]}}},
+  
+  {"print": "\n4. 创建测试文件:"},
+  {"io.writeFile": {"path": "temp_demo/test.txt", "content": "这是一个测试文件内容"}},
+  {"println": {"content": "创建了 temp_demo/test.txt 文件"}},
+  
+  {"print": "\n5. 检查是否为文件:"},
+  {"var.set": {"name": "is_file", "value": {"system.fs.isFile": "temp_demo/test.txt"}}},
+  {"println": {"content": {"string.concat": ["temp_demo/test.txt 是文件: ", {"var": "is_file"}]}}},
+  
+  {"print": "\n6. 复制文件:"},
+  {"system.fs.copy": {"from": "temp_demo/test.txt", "to": "temp_demo/test_copy.txt"}},
+  {"println": {"content": "复制文件 test.txt 到 test_copy.txt"}},
+  
+  {"print": "\n7. 移动文件:"},
+  {"system.fs.move": {"from": "temp_demo/test_copy.txt", "to": "temp_demo/test_moved.txt"}},
+  {"println": {"content": "移动文件 test_copy.txt 到 test_moved.txt"}},
+  
+  {"print": "\n8. 列出目录内容:"},
+  {"var.set": {"name": "dir_contents", "value": {"system.fs.list": "temp_demo"}}},
+  {"println": {"content": "temp_demo 目录内容:"}},
+  {"println": {"content": {"var": "dir_contents"}}},
+  
+  {"print": "\n9. 删除文件和目录:"},
+  {"system.fs.remove": {"path": "temp_demo/test.txt"}},
+  {"println": {"content": "删除了 test.txt 文件"}},
+  
+  {"system.fs.remove": {"path": "temp_demo/test_moved.txt"}},
+  {"println": {"content": "删除了 test_moved.txt 文件"}},
+  
+  {"system.fs.remove": {"path": "temp_demo", "recursive": true}},
+  {"println": {"content": "删除了 temp_demo 目录"}},
+  
+  {"print": "\n===== 文件系统功能演示结束 ====="}
+] 

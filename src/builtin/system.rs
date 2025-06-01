@@ -1,12 +1,12 @@
-use std::fs;
-use std::path::Path;
-use serde_json::{Value, Map};
 use crate::error::NjilError;
 use crate::interpreter::Interpreter;
 use crate::statements::StatementHandler;
+use serde_json::Value;
+use std::fs;
+use std::path::Path;
 use super::BuiltinModule;
 
-/// 系统模块，提供系统级功能
+/// System模块，提供系统和环境相关功能
 pub struct SystemModule;
 
 impl SystemModule {
@@ -35,7 +35,7 @@ impl BuiltinModule for SystemModule {
     }
 }
 
-/// 检查文件或目录是否存在
+/// 检查文件或目录是否存在处理器
 pub struct FsExistsHandler;
 
 // 静态实例
@@ -43,19 +43,8 @@ pub static FS_EXISTS_HANDLER: FsExistsHandler = FsExistsHandler;
 
 impl StatementHandler for FsExistsHandler {
     fn handle(&self, interpreter: &mut Interpreter, value: &Value) -> Result<Value, NjilError> {
-        let path = match value {
-            Value::String(p) => p.clone(),
-            Value::Object(obj) => {
-                let path_value = obj.get("path").ok_or_else(|| 
-                    NjilError::ExecutionError("system.fs.exists需要一个path参数".to_string()))?;
-                
-                match interpreter.evaluate_value(path_value)? {
-                    Value::String(p) => p,
-                    _ => return Err(NjilError::ExecutionError("system.fs.exists的path参数必须是字符串".to_string())),
-                }
-            },
-            _ => return Err(NjilError::ExecutionError("system.fs.exists需要一个字符串参数或包含path的对象".to_string())),
-        };
+        // 获取路径参数
+        let path = get_path_param(interpreter, value)?;
         
         // 检查文件或目录是否存在
         let exists = Path::new(&path).exists();
@@ -66,9 +55,13 @@ impl StatementHandler for FsExistsHandler {
     fn name(&self) -> &'static str {
         "system.fs.exists"
     }
+    
+    fn aliases(&self) -> Vec<&'static str> {
+        vec!["fs.exists"]
+    }
 }
 
-/// 检查路径是否为文件
+/// 检查路径是否为文件处理器
 pub struct FsIsFileHandler;
 
 // 静态实例
@@ -76,19 +69,8 @@ pub static FS_IS_FILE_HANDLER: FsIsFileHandler = FsIsFileHandler;
 
 impl StatementHandler for FsIsFileHandler {
     fn handle(&self, interpreter: &mut Interpreter, value: &Value) -> Result<Value, NjilError> {
-        let path = match value {
-            Value::String(p) => p.clone(),
-            Value::Object(obj) => {
-                let path_value = obj.get("path").ok_or_else(|| 
-                    NjilError::ExecutionError("system.fs.isFile需要一个path参数".to_string()))?;
-                
-                match interpreter.evaluate_value(path_value)? {
-                    Value::String(p) => p,
-                    _ => return Err(NjilError::ExecutionError("system.fs.isFile的path参数必须是字符串".to_string())),
-                }
-            },
-            _ => return Err(NjilError::ExecutionError("system.fs.isFile需要一个字符串参数或包含path的对象".to_string())),
-        };
+        // 获取路径参数
+        let path = get_path_param(interpreter, value)?;
         
         // 检查是否为文件
         let is_file = Path::new(&path).is_file();
@@ -99,9 +81,13 @@ impl StatementHandler for FsIsFileHandler {
     fn name(&self) -> &'static str {
         "system.fs.isFile"
     }
+    
+    fn aliases(&self) -> Vec<&'static str> {
+        vec!["fs.isFile"]
+    }
 }
 
-/// 检查路径是否为目录
+/// 检查路径是否为目录处理器
 pub struct FsIsDirHandler;
 
 // 静态实例
@@ -109,19 +95,8 @@ pub static FS_IS_DIR_HANDLER: FsIsDirHandler = FsIsDirHandler;
 
 impl StatementHandler for FsIsDirHandler {
     fn handle(&self, interpreter: &mut Interpreter, value: &Value) -> Result<Value, NjilError> {
-        let path = match value {
-            Value::String(p) => p.clone(),
-            Value::Object(obj) => {
-                let path_value = obj.get("path").ok_or_else(|| 
-                    NjilError::ExecutionError("system.fs.isDir需要一个path参数".to_string()))?;
-                
-                match interpreter.evaluate_value(path_value)? {
-                    Value::String(p) => p,
-                    _ => return Err(NjilError::ExecutionError("system.fs.isDir的path参数必须是字符串".to_string())),
-                }
-            },
-            _ => return Err(NjilError::ExecutionError("system.fs.isDir需要一个字符串参数或包含path的对象".to_string())),
-        };
+        // 获取路径参数
+        let path = get_path_param(interpreter, value)?;
         
         // 检查是否为目录
         let is_dir = Path::new(&path).is_dir();
@@ -132,9 +107,13 @@ impl StatementHandler for FsIsDirHandler {
     fn name(&self) -> &'static str {
         "system.fs.isDir"
     }
+    
+    fn aliases(&self) -> Vec<&'static str> {
+        vec!["fs.isDir"]
+    }
 }
 
-/// 创建目录
+/// 创建目录处理器
 pub struct FsMkdirHandler;
 
 // 静态实例
@@ -142,30 +121,18 @@ pub static FS_MKDIR_HANDLER: FsMkdirHandler = FsMkdirHandler;
 
 impl StatementHandler for FsMkdirHandler {
     fn handle(&self, interpreter: &mut Interpreter, value: &Value) -> Result<Value, NjilError> {
-        let (path, recursive) = match value {
-            Value::String(p) => (p.clone(), false),
-            Value::Object(obj) => {
-                let path_value = obj.get("path").ok_or_else(|| 
-                    NjilError::ExecutionError("system.fs.mkdir需要一个path参数".to_string()))?;
-                
-                let path = match interpreter.evaluate_value(path_value)? {
-                    Value::String(p) => p,
-                    _ => return Err(NjilError::ExecutionError("system.fs.mkdir的path参数必须是字符串".to_string())),
-                };
-                
-                // 是否递归创建
-                let recursive = if let Some(rec_value) = obj.get("recursive") {
-                    match interpreter.evaluate_value(rec_value)? {
-                        Value::Bool(b) => b,
-                        _ => false,
-                    }
-                } else {
-                    false
-                };
-                
-                (path, recursive)
-            },
-            _ => return Err(NjilError::ExecutionError("system.fs.mkdir需要一个字符串参数或包含path的对象".to_string())),
+        // 获取路径参数
+        let path = get_path_param(interpreter, value)?;
+        
+        // 获取递归创建参数
+        let recursive = if let Value::Object(obj) = value {
+            if let Some(Value::Bool(rec)) = obj.get("recursive") {
+                *rec
+            } else {
+                false // 默认不递归创建
+            }
+        } else {
+            false
         };
         
         // 创建目录
@@ -184,9 +151,13 @@ impl StatementHandler for FsMkdirHandler {
     fn name(&self) -> &'static str {
         "system.fs.mkdir"
     }
+    
+    fn aliases(&self) -> Vec<&'static str> {
+        vec!["fs.mkdir"]
+    }
 }
 
-/// 删除文件或目录
+/// 删除文件或目录处理器
 pub struct FsRemoveHandler;
 
 // 静态实例
@@ -194,40 +165,22 @@ pub static FS_REMOVE_HANDLER: FsRemoveHandler = FsRemoveHandler;
 
 impl StatementHandler for FsRemoveHandler {
     fn handle(&self, interpreter: &mut Interpreter, value: &Value) -> Result<Value, NjilError> {
-        let (path, recursive) = match value {
-            Value::String(p) => (p.clone(), false),
-            Value::Object(obj) => {
-                let path_value = obj.get("path").ok_or_else(|| 
-                    NjilError::ExecutionError("system.fs.remove需要一个path参数".to_string()))?;
-                
-                let path = match interpreter.evaluate_value(path_value)? {
-                    Value::String(p) => p,
-                    _ => return Err(NjilError::ExecutionError("system.fs.remove的path参数必须是字符串".to_string())),
-                };
-                
-                // 是否递归删除
-                let recursive = if let Some(rec_value) = obj.get("recursive") {
-                    match interpreter.evaluate_value(rec_value)? {
-                        Value::Bool(b) => b,
-                        _ => false,
-                    }
-                } else {
-                    false
-                };
-                
-                (path, recursive)
-            },
-            _ => return Err(NjilError::ExecutionError("system.fs.remove需要一个字符串参数或包含path的对象".to_string())),
+        // 获取路径参数
+        let path = get_path_param(interpreter, value)?;
+        
+        // 获取递归删除参数
+        let recursive = if let Value::Object(obj) = value {
+            if let Some(Value::Bool(rec)) = obj.get("recursive") {
+                *rec
+            } else {
+                false // 默认不递归删除
+            }
+        } else {
+            false
         };
         
-        // 检查路径是否存在
-        let path_obj = Path::new(&path);
-        if !path_obj.exists() {
-            return Ok(Value::Bool(false));
-        }
-        
         // 删除文件或目录
-        let result = if path_obj.is_dir() {
+        let result = if Path::new(&path).is_dir() {
             if recursive {
                 fs::remove_dir_all(&path)
             } else {
@@ -246,9 +199,13 @@ impl StatementHandler for FsRemoveHandler {
     fn name(&self) -> &'static str {
         "system.fs.remove"
     }
+    
+    fn aliases(&self) -> Vec<&'static str> {
+        vec!["fs.remove"]
+    }
 }
 
-/// 复制文件或目录
+/// 复制文件或目录处理器
 pub struct FsCopyHandler;
 
 // 静态实例
@@ -258,94 +215,66 @@ impl StatementHandler for FsCopyHandler {
     fn handle(&self, interpreter: &mut Interpreter, value: &Value) -> Result<Value, NjilError> {
         if let Value::Object(obj) = value {
             // 获取源路径
-            let src_value = obj.get("from").ok_or_else(|| 
-                NjilError::ExecutionError("system.fs.copy需要一个from参数".to_string()))?;
-            
-            let src = match interpreter.evaluate_value(src_value)? {
-                Value::String(p) => p,
-                _ => return Err(NjilError::ExecutionError("system.fs.copy的from参数必须是字符串".to_string())),
+            let from = if let Some(from_value) = obj.get("from") {
+                let evaluated = interpreter.evaluate_value(from_value)?;
+                if let Value::String(path) = evaluated {
+                    path
+                } else {
+                    return Err(NjilError::ExecutionError("from参数必须是字符串".to_string()));
+                }
+            } else {
+                return Err(NjilError::ExecutionError("缺少from参数".to_string()));
             };
             
             // 获取目标路径
-            let dest_value = obj.get("to").ok_or_else(|| 
-                NjilError::ExecutionError("system.fs.copy需要一个to参数".to_string()))?;
-            
-            let dest = match interpreter.evaluate_value(dest_value)? {
-                Value::String(p) => p,
-                _ => return Err(NjilError::ExecutionError("system.fs.copy的to参数必须是字符串".to_string())),
-            };
-            
-            // 是否递归复制目录
-            let recursive = if let Some(rec_value) = obj.get("recursive") {
-                match interpreter.evaluate_value(rec_value)? {
-                    Value::Bool(b) => b,
-                    _ => false,
+            let to = if let Some(to_value) = obj.get("to") {
+                let evaluated = interpreter.evaluate_value(to_value)?;
+                if let Value::String(path) = evaluated {
+                    path
+                } else {
+                    return Err(NjilError::ExecutionError("to参数必须是字符串".to_string()));
                 }
             } else {
-                false
+                return Err(NjilError::ExecutionError("缺少to参数".to_string()));
             };
             
-            // 检查源路径是否存在
-            let src_path = Path::new(&src);
-            if !src_path.exists() {
-                return Err(NjilError::ExecutionError(format!("源路径不存在: {}", src)));
-            }
+            // 获取递归复制参数
+            let recursive = if let Some(Value::Bool(rec)) = obj.get("recursive") {
+                *rec
+            } else {
+                false // 默认不递归复制
+            };
             
             // 复制文件或目录
-            let result = if src_path.is_dir() {
+            if Path::new(&from).is_dir() {
                 if recursive {
                     // 递归复制目录
-                    copy_dir_recursive(src_path, Path::new(&dest))
+                    copy_dir_recursive(&from, &to)?;
                 } else {
-                    // 非递归模式下不复制目录
-                    Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "需要设置recursive=true来复制目录"))
+                    return Err(NjilError::ExecutionError("不能复制目录，除非设置recursive=true".to_string()));
                 }
             } else {
                 // 复制文件
-                fs::copy(&src, &dest).map(|_| ())
-            };
-            
-            match result {
-                Ok(_) => Ok(Value::Bool(true)),
-                Err(e) => Err(NjilError::ExecutionError(format!("复制文件或目录失败: {}", e))),
+                fs::copy(&from, &to)
+                    .map_err(|e| NjilError::ExecutionError(format!("复制文件失败: {}", e)))?;
             }
+            
+            Ok(Value::Bool(true))
         } else {
-            Err(NjilError::ExecutionError("system.fs.copy需要一个包含from和to的对象".to_string()))
+            Err(NjilError::ExecutionError("system.fs.copy需要一个对象参数".to_string()))
         }
     }
     
     fn name(&self) -> &'static str {
         "system.fs.copy"
     }
+    
+    fn aliases(&self) -> Vec<&'static str> {
+        vec!["fs.copy"]
+    }
 }
 
-/// 递归复制目录的辅助函数
-fn copy_dir_recursive(src: &Path, dest: &Path) -> std::io::Result<()> {
-    // 如果目标目录不存在，创建它
-    if !dest.exists() {
-        fs::create_dir_all(dest)?;
-    }
-    
-    // 遍历源目录中的所有条目
-    for entry in fs::read_dir(src)? {
-        let entry = entry?;
-        let entry_path = entry.path();
-        let file_name = entry_path.file_name().unwrap();
-        let dest_path = dest.join(file_name);
-        
-        if entry_path.is_dir() {
-            // 递归复制子目录
-            copy_dir_recursive(&entry_path, &dest_path)?;
-        } else {
-            // 复制文件
-            fs::copy(&entry_path, &dest_path)?;
-        }
-    }
-    
-    Ok(())
-}
-
-/// 移动或重命名文件或目录
+/// 移动文件或目录处理器
 pub struct FsMoveHandler;
 
 // 静态实例
@@ -355,44 +284,49 @@ impl StatementHandler for FsMoveHandler {
     fn handle(&self, interpreter: &mut Interpreter, value: &Value) -> Result<Value, NjilError> {
         if let Value::Object(obj) = value {
             // 获取源路径
-            let src_value = obj.get("from").ok_or_else(|| 
-                NjilError::ExecutionError("system.fs.move需要一个from参数".to_string()))?;
-            
-            let src = match interpreter.evaluate_value(src_value)? {
-                Value::String(p) => p,
-                _ => return Err(NjilError::ExecutionError("system.fs.move的from参数必须是字符串".to_string())),
+            let from = if let Some(from_value) = obj.get("from") {
+                let evaluated = interpreter.evaluate_value(from_value)?;
+                if let Value::String(path) = evaluated {
+                    path
+                } else {
+                    return Err(NjilError::ExecutionError("from参数必须是字符串".to_string()));
+                }
+            } else {
+                return Err(NjilError::ExecutionError("缺少from参数".to_string()));
             };
             
             // 获取目标路径
-            let dest_value = obj.get("to").ok_or_else(|| 
-                NjilError::ExecutionError("system.fs.move需要一个to参数".to_string()))?;
-            
-            let dest = match interpreter.evaluate_value(dest_value)? {
-                Value::String(p) => p,
-                _ => return Err(NjilError::ExecutionError("system.fs.move的to参数必须是字符串".to_string())),
+            let to = if let Some(to_value) = obj.get("to") {
+                let evaluated = interpreter.evaluate_value(to_value)?;
+                if let Value::String(path) = evaluated {
+                    path
+                } else {
+                    return Err(NjilError::ExecutionError("to参数必须是字符串".to_string()));
+                }
+            } else {
+                return Err(NjilError::ExecutionError("缺少to参数".to_string()));
             };
             
-            // 检查源路径是否存在
-            if !Path::new(&src).exists() {
-                return Err(NjilError::ExecutionError(format!("源路径不存在: {}", src)));
-            }
-            
             // 移动文件或目录
-            match fs::rename(&src, &dest) {
-                Ok(_) => Ok(Value::Bool(true)),
-                Err(e) => Err(NjilError::ExecutionError(format!("移动文件或目录失败: {}", e))),
-            }
+            fs::rename(&from, &to)
+                .map_err(|e| NjilError::ExecutionError(format!("移动文件或目录失败: {}", e)))?;
+            
+            Ok(Value::Bool(true))
         } else {
-            Err(NjilError::ExecutionError("system.fs.move需要一个包含from和to的对象".to_string()))
+            Err(NjilError::ExecutionError("system.fs.move需要一个对象参数".to_string()))
         }
     }
     
     fn name(&self) -> &'static str {
         "system.fs.move"
     }
+    
+    fn aliases(&self) -> Vec<&'static str> {
+        vec!["fs.move"]
+    }
 }
 
-/// 列出目录内容
+/// 列出目录内容处理器
 pub struct FsListHandler;
 
 // 静态实例
@@ -400,129 +334,314 @@ pub static FS_LIST_HANDLER: FsListHandler = FsListHandler;
 
 impl StatementHandler for FsListHandler {
     fn handle(&self, interpreter: &mut Interpreter, value: &Value) -> Result<Value, NjilError> {
-        let (path, include_hidden, include_info) = match value {
-            Value::String(p) => (p.clone(), false, false),
-            Value::Object(obj) => {
-                let path_value = obj.get("path").ok_or_else(|| 
-                    NjilError::ExecutionError("system.fs.list需要一个path参数".to_string()))?;
-                
-                let path = match interpreter.evaluate_value(path_value)? {
-                    Value::String(p) => p,
-                    _ => return Err(NjilError::ExecutionError("system.fs.list的path参数必须是字符串".to_string())),
-                };
-                
-                // 是否包含隐藏文件
-                let include_hidden = if let Some(hidden_value) = obj.get("includeHidden") {
-                    match interpreter.evaluate_value(hidden_value)? {
-                        Value::Bool(b) => b,
-                        _ => false,
-                    }
-                } else {
-                    false
-                };
-                
-                // 是否包含文件详细信息
-                let include_info = if let Some(info_value) = obj.get("includeInfo") {
-                    match interpreter.evaluate_value(info_value)? {
-                        Value::Bool(b) => b,
-                        _ => false,
-                    }
-                } else {
-                    false
-                };
-                
-                (path, include_hidden, include_info)
-            },
-            _ => return Err(NjilError::ExecutionError("system.fs.list需要一个字符串参数或包含path的对象".to_string())),
-        };
-        
-        // 检查目录是否存在
-        let dir_path = Path::new(&path);
-        if !dir_path.exists() {
-            return Err(NjilError::ExecutionError(format!("目录不存在: {}", path)));
-        }
-        
-        if !dir_path.is_dir() {
-            return Err(NjilError::ExecutionError(format!("路径不是目录: {}", path)));
-        }
+        // 获取路径参数
+        let path = get_path_param(interpreter, value)?;
         
         // 列出目录内容
-        let mut entries = Vec::new();
+        let entries = fs::read_dir(&path)
+            .map_err(|e| NjilError::ExecutionError(format!("读取目录失败: {}", e)))?;
         
-        match fs::read_dir(dir_path) {
-            Ok(dir_iter) => {
-                for entry_result in dir_iter {
-                    match entry_result {
-                        Ok(entry) => {
-                            let file_name = entry.file_name();
-                            let file_name_str = file_name.to_string_lossy().to_string();
-                            
-                            // 处理隐藏文件
-                            if !include_hidden && file_name_str.starts_with('.') {
-                                continue;
-                            }
-                            
-                            if include_info {
-                                // 包含详细信息
-                                let mut entry_info = Map::new();
-                                entry_info.insert("name".to_string(), Value::String(file_name_str));
-                                
-                                // 获取文件类型
-                                let file_type = match entry.file_type() {
-                                    Ok(ft) => {
-                                        if ft.is_dir() {
-                                            "directory"
-                                        } else if ft.is_file() {
-                                            "file"
-                                        } else if ft.is_symlink() {
-                                            "symlink"
-                                        } else {
-                                            "unknown"
-                                        }
-                                    },
-                                    Err(_) => "unknown",
-                                };
-                                entry_info.insert("type".to_string(), Value::String(file_type.to_string()));
-                                
-                                // 获取文件大小
-                                if let Ok(metadata) = entry.metadata() {
-                                    if metadata.is_file() {
-                                        entry_info.insert("size".to_string(), Value::Number(metadata.len().into()));
-                                    }
-                                    
-                                    // 获取修改时间
-                                    if let Ok(modified) = metadata.modified() {
-                                        if let Ok(modified_secs) = modified.duration_since(std::time::UNIX_EPOCH) {
-                                            entry_info.insert("modified".to_string(), Value::Number(modified_secs.as_secs().into()));
-                                        }
-                                    }
-                                }
-                                
-                                entries.push(Value::Object(entry_info));
-                            } else {
-                                // 只包含文件名
-                                entries.push(Value::String(file_name_str));
-                            }
-                        },
-                        Err(e) => {
-                            return Err(NjilError::ExecutionError(format!("读取目录条目失败: {}", e)));
-                        }
-                    }
-                }
-            },
-            Err(e) => {
-                return Err(NjilError::ExecutionError(format!("读取目录失败: {}", e)));
+        // 创建结果数组
+        let mut result = Vec::new();
+        
+        // 遍历目录条目
+        for entry in entries {
+            if let Ok(entry) = entry {
+                let file_name = entry.file_name().to_string_lossy().to_string();
+                let file_type = entry.file_type().map_err(|e| NjilError::ExecutionError(format!("获取文件类型失败: {}", e)))?;
+                
+                // 创建条目对象
+                let mut entry_obj = serde_json::Map::new();
+                entry_obj.insert("name".to_string(), Value::String(file_name));
+                entry_obj.insert("isDir".to_string(), Value::Bool(file_type.is_dir()));
+                entry_obj.insert("isFile".to_string(), Value::Bool(file_type.is_file()));
+                
+                result.push(Value::Object(entry_obj));
             }
         }
         
-        Ok(Value::Array(entries))
+        Ok(Value::Array(result))
     }
     
     fn name(&self) -> &'static str {
         "system.fs.list"
     }
+    
+    fn aliases(&self) -> Vec<&'static str> {
+        vec!["fs.list"]
+    }
 }
 
-// 导入单元测试
+// 辅助函数: 从参数中获取路径
+fn get_path_param(interpreter: &mut Interpreter, value: &Value) -> Result<String, NjilError> {
+    match value {
+        Value::String(path) => Ok(path.clone()),
+        Value::Object(obj) => {
+            if let Some(path_value) = obj.get("path") {
+                let evaluated = interpreter.evaluate_value(path_value)?;
+                if let Value::String(path) = evaluated {
+                    Ok(path)
+                } else {
+                    Err(NjilError::ExecutionError("path参数必须是字符串".to_string()))
+                }
+            } else {
+                Err(NjilError::ExecutionError("缺少path参数".to_string()))
+            }
+        },
+        _ => Err(NjilError::ExecutionError("参数必须是字符串或包含path字段的对象".to_string())),
+    }
+}
+
+// 辅助函数: 递归复制目录
+fn copy_dir_recursive(from: &str, to: &str) -> Result<(), NjilError> {
+    // 创建目标目录
+    fs::create_dir_all(to)
+        .map_err(|e| NjilError::ExecutionError(format!("创建目标目录失败: {}", e)))?;
+    
+    // 读取源目录
+    let entries = fs::read_dir(from)
+        .map_err(|e| NjilError::ExecutionError(format!("读取源目录失败: {}", e)))?;
+    
+    // 遍历源目录中的条目
+    for entry in entries {
+        let entry = entry.map_err(|e| NjilError::ExecutionError(format!("读取目录条目失败: {}", e)))?;
+        let file_type = entry.file_type().map_err(|e| NjilError::ExecutionError(format!("获取文件类型失败: {}", e)))?;
+        
+        let src_path = entry.path();
+        let file_name = entry.file_name().to_string_lossy().to_string();
+        let dst_path = Path::new(to).join(file_name);
+        
+        if file_type.is_dir() {
+            // 递归复制子目录
+            copy_dir_recursive(
+                src_path.to_str().unwrap(),
+                dst_path.to_str().unwrap()
+            )?;
+        } else {
+            // 复制文件
+            fs::copy(&src_path, &dst_path)
+                .map_err(|e| NjilError::ExecutionError(format!("复制文件失败: {}", e)))?;
+        }
+    }
+    
+    Ok(())
+}
+
 #[cfg(test)]
-mod tests; 
+mod tests {
+    use super::*;
+    use std::fs::File;
+    use std::io::Write;
+    use tempfile::tempdir;
+    
+    #[test]
+    fn test_fs_exists() {
+        let mut interpreter = Interpreter::new();
+        
+        // 创建临时目录和文件
+        let temp_dir = tempdir().unwrap();
+        let file_path = temp_dir.path().join("test.txt");
+        let dir_path = temp_dir.path().join("testdir");
+        
+        File::create(&file_path).unwrap();
+        fs::create_dir(&dir_path).unwrap();
+        
+        // 测试文件存在
+        let result = FS_EXISTS_HANDLER.handle(
+            &mut interpreter, 
+            &Value::String(file_path.to_str().unwrap().to_string())
+        ).unwrap();
+        assert_eq!(result, Value::Bool(true));
+        
+        // 测试目录存在
+        let result = FS_EXISTS_HANDLER.handle(
+            &mut interpreter, 
+            &Value::String(dir_path.to_str().unwrap().to_string())
+        ).unwrap();
+        assert_eq!(result, Value::Bool(true));
+        
+        // 测试不存在的路径
+        let non_existent = temp_dir.path().join("non_existent.txt");
+        let result = FS_EXISTS_HANDLER.handle(
+            &mut interpreter, 
+            &Value::String(non_existent.to_str().unwrap().to_string())
+        ).unwrap();
+        assert_eq!(result, Value::Bool(false));
+    }
+    
+    #[test]
+    fn test_fs_is_file_and_is_dir() {
+        let mut interpreter = Interpreter::new();
+        
+        // 创建临时目录和文件
+        let temp_dir = tempdir().unwrap();
+        let file_path = temp_dir.path().join("test.txt");
+        let dir_path = temp_dir.path().join("testdir");
+        
+        File::create(&file_path).unwrap();
+        fs::create_dir(&dir_path).unwrap();
+        
+        // 测试 isFile
+        let result = FS_IS_FILE_HANDLER.handle(
+            &mut interpreter, 
+            &Value::String(file_path.to_str().unwrap().to_string())
+        ).unwrap();
+        assert_eq!(result, Value::Bool(true));
+        
+        let result = FS_IS_FILE_HANDLER.handle(
+            &mut interpreter, 
+            &Value::String(dir_path.to_str().unwrap().to_string())
+        ).unwrap();
+        assert_eq!(result, Value::Bool(false));
+        
+        // 测试 isDir
+        let result = FS_IS_DIR_HANDLER.handle(
+            &mut interpreter, 
+            &Value::String(file_path.to_str().unwrap().to_string())
+        ).unwrap();
+        assert_eq!(result, Value::Bool(false));
+        
+        let result = FS_IS_DIR_HANDLER.handle(
+            &mut interpreter, 
+            &Value::String(dir_path.to_str().unwrap().to_string())
+        ).unwrap();
+        assert_eq!(result, Value::Bool(true));
+    }
+    
+    #[test]
+    fn test_fs_mkdir_and_remove() {
+        let mut interpreter = Interpreter::new();
+        
+        // 创建临时目录
+        let temp_dir = tempdir().unwrap();
+        let new_dir_path = temp_dir.path().join("newdir");
+        let nested_dir_path = temp_dir.path().join("parent/child");
+        
+        // 测试创建简单目录
+        let mut obj = serde_json::Map::new();
+        obj.insert("path".to_string(), Value::String(new_dir_path.to_str().unwrap().to_string()));
+        
+        let result = FS_MKDIR_HANDLER.handle(
+            &mut interpreter, 
+            &Value::Object(obj)
+        ).unwrap();
+        assert_eq!(result, Value::Bool(true));
+        assert!(new_dir_path.exists());
+        
+        // 测试创建嵌套目录（使用recursive参数）
+        let mut obj = serde_json::Map::new();
+        obj.insert("path".to_string(), Value::String(nested_dir_path.to_str().unwrap().to_string()));
+        obj.insert("recursive".to_string(), Value::Bool(true));
+        
+        let result = FS_MKDIR_HANDLER.handle(
+            &mut interpreter, 
+            &Value::Object(obj)
+        ).unwrap();
+        assert_eq!(result, Value::Bool(true));
+        assert!(nested_dir_path.exists());
+        
+        // 测试删除目录
+        let result = FS_REMOVE_HANDLER.handle(
+            &mut interpreter, 
+            &Value::String(new_dir_path.to_str().unwrap().to_string())
+        ).unwrap();
+        assert_eq!(result, Value::Bool(true));
+        assert!(!new_dir_path.exists());
+    }
+    
+    #[test]
+    fn test_fs_copy_and_move() {
+        let mut interpreter = Interpreter::new();
+        
+        // 创建临时目录和文件
+        let temp_dir = tempdir().unwrap();
+        let src_file_path = temp_dir.path().join("source.txt");
+        let dst_file_path = temp_dir.path().join("dest.txt");
+        let move_file_path = temp_dir.path().join("moved.txt");
+        
+        // 创建源文件
+        let mut file = File::create(&src_file_path).unwrap();
+        writeln!(file, "测试内容").unwrap();
+        
+        // 测试复制文件
+        let mut obj = serde_json::Map::new();
+        obj.insert("from".to_string(), Value::String(src_file_path.to_str().unwrap().to_string()));
+        obj.insert("to".to_string(), Value::String(dst_file_path.to_str().unwrap().to_string()));
+        
+        let result = FS_COPY_HANDLER.handle(
+            &mut interpreter, 
+            &Value::Object(obj)
+        ).unwrap();
+        assert_eq!(result, Value::Bool(true));
+        assert!(dst_file_path.exists());
+        
+        // 测试移动文件
+        let mut obj = serde_json::Map::new();
+        obj.insert("from".to_string(), Value::String(dst_file_path.to_str().unwrap().to_string()));
+        obj.insert("to".to_string(), Value::String(move_file_path.to_str().unwrap().to_string()));
+        
+        let result = FS_MOVE_HANDLER.handle(
+            &mut interpreter, 
+            &Value::Object(obj)
+        ).unwrap();
+        assert_eq!(result, Value::Bool(true));
+        assert!(!dst_file_path.exists());
+        assert!(move_file_path.exists());
+    }
+    
+    #[test]
+    fn test_fs_list() {
+        let mut interpreter = Interpreter::new();
+        
+        // 创建临时目录和文件
+        let temp_dir = tempdir().unwrap();
+        let file1_path = temp_dir.path().join("file1.txt");
+        let file2_path = temp_dir.path().join("file2.txt");
+        let dir_path = temp_dir.path().join("subdir");
+        
+        File::create(&file1_path).unwrap();
+        File::create(&file2_path).unwrap();
+        fs::create_dir(&dir_path).unwrap();
+        
+        // 测试列出目录内容
+        let result = FS_LIST_HANDLER.handle(
+            &mut interpreter, 
+            &Value::String(temp_dir.path().to_str().unwrap().to_string())
+        ).unwrap();
+        
+        if let Value::Array(entries) = result {
+            assert_eq!(entries.len(), 3); // 两个文件和一个目录
+            
+            // 检查是否包含我们创建的文件和目录
+            let mut found_file1 = false;
+            let mut found_file2 = false;
+            let mut found_dir = false;
+            
+            for entry in entries {
+                if let Value::Object(obj) = entry {
+                    if let Some(Value::String(name)) = obj.get("name") {
+                        if name == "file1.txt" {
+                            found_file1 = true;
+                            assert_eq!(obj.get("isFile"), Some(&Value::Bool(true)));
+                            assert_eq!(obj.get("isDir"), Some(&Value::Bool(false)));
+                        } else if name == "file2.txt" {
+                            found_file2 = true;
+                            assert_eq!(obj.get("isFile"), Some(&Value::Bool(true)));
+                            assert_eq!(obj.get("isDir"), Some(&Value::Bool(false)));
+                        } else if name == "subdir" {
+                            found_dir = true;
+                            assert_eq!(obj.get("isFile"), Some(&Value::Bool(false)));
+                            assert_eq!(obj.get("isDir"), Some(&Value::Bool(true)));
+                        }
+                    }
+                }
+            }
+            
+            assert!(found_file1, "file1.txt not found in directory listing");
+            assert!(found_file2, "file2.txt not found in directory listing");
+            assert!(found_dir, "subdir not found in directory listing");
+        } else {
+            panic!("Expected array result from fs.list");
+        }
+    }
+} 
