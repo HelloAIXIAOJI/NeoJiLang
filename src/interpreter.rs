@@ -115,8 +115,13 @@ impl Interpreter {
                     let module_name = &import_path[1..]; // 去掉!前缀
                     self.import_builtin_module(module_name)?;
                 } else {
-                    // 导入外部文件（暂未实现）
-                    return Err(NjilError::ExecutionError(format!("不支持导入外部文件: {}", import_path)));
+                    // 检查是否为NJIM模块
+                    if import_path.ends_with(".njim") || self.is_njim_module(import_path) {
+                        self.import_njim_module(import_path)?;
+                    } else {
+                        // 其他导入方式（暂不支持）
+                        return Err(NjilError::ExecutionError(format!("不支持导入外部文件: {}", import_path)));
+                    }
                 }
             } else {
                 return Err(NjilError::ExecutionError("导入路径必须是字符串".to_string()));
@@ -124,6 +129,92 @@ impl Interpreter {
         }
         
         Ok(())
+    }
+    
+    /// 检查是否为NJIM模块
+    fn is_njim_module(&self, import_path: &str) -> bool {
+        // 如果扩展名已经是.njim，则返回true
+        if import_path.ends_with(".njim") {
+            return true;
+        }
+        
+        // 尝试解析模块路径，如果成功则认为是NJIM模块
+        if let Some(dir) = &self.current_dir {
+            let module_path = dir.join(import_path);
+            if module_path.exists() && module_path.is_file() {
+                return true;
+            }
+            
+            let with_ext = module_path.with_extension("njim");
+            if with_ext.exists() && with_ext.is_file() {
+                return true;
+            }
+        }
+        
+        false
+    }
+    
+    /// 导入NJIM模块
+    fn import_njim_module(&mut self, module_path: &str) -> Result<(), NjilError> {
+        debug_println!("导入NJIM模块: {}", module_path);
+        
+        // 解析模块路径
+        let full_path = if let Some(dir) = &self.current_dir {
+            if module_path.starts_with('/') {
+                // 绝对路径（相对于项目根目录）
+                PathBuf::from(module_path.trim_start_matches('/'))
+            } else {
+                // 相对路径（相对于当前目录）
+                dir.join(module_path)
+            }
+        } else {
+            PathBuf::from(module_path)
+        };
+        
+        debug_println!("解析的模块路径: {}", full_path.display());
+        
+        // 加载模块
+        let module_result = crate::module::load_module(&full_path);
+        
+        match module_result {
+            Ok(module) => {
+                let module_name = module.module.clone();
+                let namespace = module.namespace.clone().unwrap_or_else(|| module_name.clone());
+                
+                debug_println!("模块加载成功: {}, 命名空间: {}", module_name, namespace);
+                
+                // 处理模块导出的常量
+                if let Some(constants) = &module.exports.constants {
+                    for (const_name, const_value) in constants {
+                        let full_const_name = format!("{}.{}", namespace, const_name);
+                        debug_println!("导入常量: {}", full_const_name);
+                        self.constants.insert(full_const_name, const_value.clone());
+                    }
+                }
+                
+                // 处理模块导出的函数
+                if let Some(functions) = &module.exports.functions {
+                    debug_println!("导入模块函数, 数量: {}", functions.len());
+                    for (func_name, func_def) in functions {
+                        let full_func_name = format!("{}.{}", namespace, func_name);
+                        debug_println!("导入函数: {}", full_func_name);
+                        
+                        // 将函数添加到当前解释器的函数表中
+                        if let Some(current_program) = &mut self.current_program {
+                            current_program.program.functions.insert(full_func_name, func_def.clone());
+                        }
+                    }
+                }
+                
+                // 记录已加载的模块，用于函数调用时查找
+                self.loaded_modules.insert(namespace);
+                
+                Ok(())
+            },
+            Err(e) => {
+                Err(NjilError::ExecutionError(format!("导入模块失败: {}", e)))
+            }
+        }
     }
     
     /// 导入内置模块
@@ -473,53 +564,59 @@ impl Interpreter {
 
     /// 将常量字符串模式替换为实际值
     fn replace_constant_in_string(&mut self, input: &str) -> String {
-        let re = regex::Regex::new(r"\$\{const:([^}]+)\}").unwrap();
+        let const_pattern = regex::Regex::new(r"\$\{const:([^}]+)\}").unwrap();
+        let mut result = input.to_string();
         
-        let result = re.replace_all(input, |caps: &regex::Captures| {
-            let const_path = &caps[1];
+        // 收集所有需要替换的常量
+        let mut replacements = Vec::new();
+        for cap in const_pattern.captures_iter(&result) {
+            let const_path = cap[1].to_string();
+            let full_match = cap[0].to_string();
+            
+            debug_println!("[replace_constant_in_string] 尝试替换常量: {}", const_path);
             
             // 处理嵌套路径的常量访问
-            if const_path.contains('.') || const_path.contains('[') {
-                // 1. 解析路径
-                let path_parts = match path::parse_path(const_path) {
-                    Ok(parts) => parts,
-                    Err(_) => return format!("${{const:{}}}", const_path), // 保持原样
-                };
-                
-                // 2. 获取基础常量名
-                let base_const_name = match &path_parts[0] {
-                    path::PathPart::ObjectProperty(name) => name.clone(),
-                    _ => return format!("${{const:{}}}", const_path), // 保持原样
-                };
-                
-                // 3. 检查基础常量是否存在
-                if !self.constants.contains_key(&base_const_name) {
-                    return format!("${{const:{}}}", const_path); // 保持原样
-                }
-                
-                // 4. 克隆基础常量值，避免借用冲突
-                let base_value = self.constants.get(&base_const_name).unwrap().clone();
-                
-                // 5. 使用剩余路径部分获取嵌套值
-                let remaining_path = &path_parts[1..];
-                match path::get_nested_value(&base_value, remaining_path) {
-                    Ok(value) => self.value_to_string(value),
-                    Err(_) => format!("${{const:{}}}", const_path), // 保持原样
+            if const_path.contains('.') {
+                let parts: Vec<&str> = const_path.split('.').collect();
+                if parts.len() >= 2 {
+                    let module_name = parts[0];
+                    let const_name = parts[1];
+                    let full_const_name = format!("{}.{}", module_name, const_name);
+                    
+                    debug_println!("[replace_constant_in_string] 查找常量: {}", full_const_name);
+                    
+                    if let Some(value) = self.constants.get(&full_const_name) {
+                        let const_value = value.clone();
+                        let replacement = self.value_to_string(&const_value);
+                        debug_println!("[replace_constant_in_string] 替换 {} 为 {}", full_match, replacement);
+                        replacements.push((full_match, replacement));
+                    } else {
+                        debug_println!("[replace_constant_in_string] 未找到常量: {}", full_const_name);
+                        replacements.push((full_match.clone(), full_match));
+                    }
+                } else {
+                    replacements.push((full_match.clone(), full_match));
                 }
             } else {
-                // 普通常量访问
-                // 克隆常量值，避免借用冲突
-                let const_value_opt = self.get_constant(const_path).map(|v| v.clone());
-                
-                if let Some(const_value) = const_value_opt {
-                    self.value_to_string(&const_value)
+                // 普通常量
+                if let Some(value) = self.constants.get(&const_path) {
+                    let const_value = value.clone();
+                    let replacement = self.value_to_string(&const_value);
+                    debug_println!("[replace_constant_in_string] 替换 {} 为 {}", full_match, replacement);
+                    replacements.push((full_match, replacement));
                 } else {
-                    format!("${{const:{}}}", const_path) // 保持原样
+                    debug_println!("[replace_constant_in_string] 未找到常量: {}", const_path);
+                    replacements.push((full_match.clone(), full_match));
                 }
             }
-        });
+        }
         
-        result.to_string()
+        // 执行替换
+        for (pattern, replacement) in replacements {
+            result = result.replace(&pattern, &replacement);
+        }
+        
+        result
     }
 }
 

@@ -1,0 +1,146 @@
+{
+    "import": [
+        "examples/math.njim",
+        "examples/string_utils.njim"
+    ],
+    "program": {
+        "main": {
+            "body": [
+                {
+                    "println": {
+                        "content": "===== 模块系统多模块使用示例 ====="
+                    }
+                },
+                {
+                    "println": {
+                        "content": "数学模块常量：PI = ${const:math.PI}, E = ${const:math.E}"
+                    }
+                },
+                {
+                    "println": {
+                        "content": "字符串模块常量：SPACE = '${const:str.SPACE}', NEWLINE = '${const:str.NEWLINE}'"
+                    }
+                },
+                {
+                    "var.set": {
+                        "name": "radius",
+                        "value": 5
+                    }
+                },
+                {
+                    "var.set": {
+                        "name": "area",
+                        "value": {
+                            "function.call": {
+                                "name": "math.multiply",
+                                "args": [
+                                    {"const": "math.PI"},
+                                    {
+                                        "function.call": {
+                                            "name": "math.square",
+                                            "args": [{"var": "radius"}]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                {
+                    "println": {
+                        "content": "圆的面积（半径=${var:radius}）：${var:area}"
+                    }
+                },
+                {
+                    "var.set": {
+                        "name": "text",
+                        "value": "hello, world"
+                    }
+                },
+                {
+                    "var.set": {
+                        "name": "upper_text",
+                        "value": {
+                            "function.call": {
+                                "name": "str.upper",
+                                "args": [{"var": "text"}]
+                            }
+                        }
+                    }
+                },
+                {
+                    "println": {
+                        "content": "原始文本：${var:text}"
+                    }
+                },
+                {
+                    "println": {
+                        "content": "大写文本：${var:upper_text}"
+                    }
+                },
+                {
+                    "var.set": {
+                        "name": "reversed_text",
+                        "value": {
+                            "function.call": {
+                                "name": "str.reverse",
+                                "args": [{"var": "text"}]
+                            }
+                        }
+                    }
+                },
+                {
+                    "println": {
+                        "content": "反转文本：${var:reversed_text}"
+                    }
+                },
+                {
+                    "var.set": {
+                        "name": "padded_text",
+                        "value": {
+                            "function.call": {
+                                "name": "str.pad_left",
+                                "args": [{"var": "text"}, 20, "*"]
+                            }
+                        }
+                    }
+                },
+                {
+                    "println": {
+                        "content": "左填充文本：${var:padded_text}"
+                    }
+                },
+                {
+                    "var.set": {
+                        "name": "number",
+                        "value": {
+                            "function.call": {
+                                "name": "math.power",
+                                "args": [2, 10]
+                            }
+                        }
+                    }
+                },
+                {
+                    "var.set": {
+                        "name": "formatted_number",
+                        "value": {
+                            "function.call": {
+                                "name": "str.pad_left",
+                                "args": [{"var": "number"}, 10, "0"]
+                            }
+                        }
+                    }
+                },
+                {
+                    "println": {
+                        "content": "格式化数字（2^10）：${var:formatted_number}"
+                    }
+                },
+                {
+                    "return": "模块系统测试成功！"
+                }
+            ]
+        }
+    }
+} 

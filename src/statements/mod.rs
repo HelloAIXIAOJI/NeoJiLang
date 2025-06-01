@@ -19,6 +19,7 @@ pub mod sleep;
 pub mod constant;
 
 use print::PRINT_HANDLER;
+use print::PRINTLN_HANDLER;
 use string::STRING_CONCAT_HANDLER;
 use var::{VAR_HANDLER, VAR_SET_HANDLER, VAR_SET_MULTI_HANDLER};
 use return_stmt::RETURN_HANDLER;
@@ -65,6 +66,7 @@ impl StatementRegistry {
         
         // 注册核心语句处理器
         registry.register_handler(&PRINT_HANDLER);
+        registry.register_handler(&PRINTLN_HANDLER);
         registry.register_handler(&VAR_HANDLER);
         registry.register_handler(&VAR_SET_HANDLER);
         registry.register_handler(&VAR_SET_MULTI_HANDLER);

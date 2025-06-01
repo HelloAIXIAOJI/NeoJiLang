@@ -7,6 +7,7 @@ pub mod njis;
 pub mod builtin;
 pub mod utils;
 pub mod preprocessor;
+pub mod module;
 
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -46,6 +47,11 @@ pub fn run_file<P: AsRef<Path>>(file_path: P) -> Result<serde_json::Value, error
         } else if extension == "njil" {
             // 使用NJIL解析器
             return interpreter::run_file(path);
+        } else if extension == "njim" {
+            // NJIM文件不能直接执行，它是一个模块
+            return Err(error::NjilError::ExecutionError(
+                "NJIM文件是一个模块，不能直接执行。请在NJIL文件中导入此模块。".to_string()
+            ));
         }
     }
     
@@ -55,5 +61,5 @@ pub fn run_file<P: AsRef<Path>>(file_path: P) -> Result<serde_json::Value, error
 
 // 重新导出常用类型
 pub use crate::error::NjilError;
-pub use crate::types::{NjilProgram, Program, Function};
+pub use crate::types::{NjilProgram, Program, Function, NjimModule, ModuleExports};
 pub use crate::interpreter::Interpreter; 

@@ -12,10 +12,11 @@ JiLang存储库（https://github.com/HelloAIXIAOJI/JiLang）不会归档。如�
 
 ## 支持的文件格式
 
-NeoJiLang支持两种文件格式：
+NeoJiLang支持三种文件格式：
 
 1. **NJIL (.njil)** - 原始格式，使用复杂的JSON结构表示程序
 2. **NJIS (.njis)** - 简化格式，使用JSON数组直接表示语句序列
+3. **NJIM (.njim)** - 模块格式，用于定义可重用的模块
 
 ### NJIL与NJIS的区别
 
@@ -73,12 +74,67 @@ NJIS示例：
 ]
 ```
 
+#### NJIM格式 (.njim)
+
+NJIM是NeoJiLang的模块格式，用于定义可重用的代码模块：
+
+- 使用JSON对象定义模块的结构和内容
+- 包含`module`、`namespace`等元数据字段
+- 通过`exports`字段定义模块导出的内容
+- 支持导出常量、函数和类型定义
+- 作为独立文件存在，可以被其他NJIL程序导入使用
+- **注意**：NJIM文件不能直接执行，只能被导入
+
+NJIM示例：
+```json
+{
+  "module": "math",
+  "namespace": "math",
+  "description": "数学函数模块",
+  "author": "NeoJiLang Team",
+  "version": "1.0.0",
+  "exports": {
+    "constants": {
+      "PI": 3.14159265359,
+      "E": 2.71828182846
+    },
+    "functions": {
+      "add": {
+        "body": [
+          {
+            "return": {
+              "add": {
+                "a": {"var": "$1"},
+                "b": {"var": "$2"}
+              }
+            }
+          }
+        ]
+      },
+      "square": {
+        "body": [
+          {
+            "return": {
+              "multiply": {
+                "a": {"var": "$1"},
+                "b": {"var": "$1"}
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
 #### 选择指南
 
 - **使用NJIL**：如果您需要开发复杂的程序，需要导入模块，定义多个函数
 - **使用NJIS**：如果您需要快速编写简单脚本，或者只关注主程序逻辑
+- **使用NJIM**：如果您需要创建可重用的代码模块，被其他程序导入使用
 
-两种格式可以同时使用，根据不同场景选择最适合的格式。
+NJIL和NJIS可以直接执行，NJIM只能被导入使用。
 
 ## 快速开始
 
@@ -294,3 +350,126 @@ NeoJiLang支持定义和使用常量，常量是一旦定义就不能修改的�
 ```
 
 ## 变量设置
+
+## 模块系统 (NJIM)
+
+NeoJiLang 0.2.0引入了模块系统，通过NJIM文件格式支持代码的模块化和复用。
+
+### 创建模块
+
+创建一个NJIM模块文件：
+
+```json
+{
+  "module": "math",                 // 模块名称（必填）
+  "namespace": "math",              // 命名空间（可选，默认等于模块名）
+  "description": "数学函数模块",     // 模块描述（可选）
+  "author": "NeoJiLang Team",       // 作者信息（可选）
+  "version": "1.0.0",               // 版本号（可选）
+  "exports": {                      // 导出内容（必填）
+    "constants": {                  // 导出的常量（可选）
+      "PI": 3.14159265359,
+      "E": 2.71828182846
+    },
+    "functions": {                  // 导出的函数（可选）
+      "add": {
+        "body": [
+          {
+            "return": {             // 所有模块函数必须有返回值
+              "add": {
+                "a": {"var": "$1"},
+                "b": {"var": "$2"}
+              }
+            }
+          }
+        ]
+      }
+    },
+    "types": {                      // 导出的类型定义（可选）
+      "Point": {
+        "x": "number",
+        "y": "number"
+      }
+    }
+  },
+  "imports": [                      // 该模块依赖的其他模块（可选）
+    "other_module.njim"
+  ]
+}
+```
+
+### 使用模块
+
+在NJIL文件中导入和使用模块：
+
+```json
+{
+  "import": [
+    "path/to/math.njim"    // 导入NJIM模块
+  ],
+  "program": {
+    "main": {
+      "body": [
+        // 访问模块常量
+        {"println": {"content": "PI值: ${const:math.PI}"}},
+        
+        // 调用模块函数
+        {"var.set": {
+          "name": "result",
+          "value": {
+            "function.call": {
+              "name": "math.add",   // 使用"模块名.函数名"格式调用
+              "args": [5, 10]
+            }
+          }
+        }},
+        
+        {"println": {"content": "5 + 10 = ${var:result}"}}
+      ]
+    }
+  }
+}
+```
+
+### 模块路径
+
+模块系统支持以下导入路径格式：
+
+- 相对路径: `"../modules/math.njim"`
+- 绝对路径: `"/modules/math.njim"`
+- 自动添加扩展名: `"modules/math"` (会自动尝试寻找 `modules/math.njim`)
+
+### 模块功能限制
+
+- NJIM模块不能直接执行，只能被导入
+- NJIS格式不支持导入外部NJIM模块
+- 模块函数必须有返回值，确保接口明确
+
+### 模块依赖
+
+模块可以通过`imports`字段导入其他模块，形成模块间的依赖关系：
+
+```json
+{
+  "module": "geometry",
+  "imports": [
+    "math.njim"    // 依赖math模块
+  ],
+  "exports": {
+    "functions": {
+      "calculateArea": {
+        "body": [
+          {
+            "return": {
+              "multiply": {
+                "a": {"var": "$1"},
+                "b": {"function.call": {"name": "math.square", "args": [{"var": "$2"}]}}
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+```

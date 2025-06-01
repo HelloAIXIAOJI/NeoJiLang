@@ -1,0 +1,299 @@
+{
+    "module": "string_utils",
+    "namespace": "str",
+    "description": "字符串处理工具模块",
+    "author": "NeoJiLang Team",
+    "version": "1.0.0",
+    "exports": {
+        "constants": {
+            "EMPTY": "",
+            "SPACE": " ",
+            "NEWLINE": "\n"
+        },
+        "functions": {
+            "length": {
+                "body": [
+                    {
+                        "var.set": {
+                            "name": "str",
+                            "value": {"var": "$1"}
+                        }
+                    },
+                    {
+                        "return": {
+                            "string.length": {"var": "str"}
+                        }
+                    }
+                ]
+            },
+            "upper": {
+                "body": [
+                    {
+                        "var.set": {
+                            "name": "str",
+                            "value": {"var": "$1"}
+                        }
+                    },
+                    {
+                        "return": {
+                            "string.upper": {"var": "str"}
+                        }
+                    }
+                ]
+            },
+            "lower": {
+                "body": [
+                    {
+                        "var.set": {
+                            "name": "str",
+                            "value": {"var": "$1"}
+                        }
+                    },
+                    {
+                        "return": {
+                            "string.lower": {"var": "str"}
+                        }
+                    }
+                ]
+            },
+            "reverse": {
+                "body": [
+                    {
+                        "var.set": {
+                            "name": "str",
+                            "value": {"var": "$1"}
+                        }
+                    },
+                    {
+                        "var.set": {
+                            "name": "len",
+                            "value": {
+                                "string.length": {"var": "str"}
+                            }
+                        }
+                    },
+                    {
+                        "var.set": {
+                            "name": "result",
+                            "value": ""
+                        }
+                    },
+                    {
+                        "loop": {
+                            "from": 0,
+                            "to": {"subtract": {"a": {"var": "len"}, "b": 1}},
+                            "as": "i",
+                            "body": [
+                                {
+                                    "var.set": {
+                                        "name": "result",
+                                        "value": {
+                                            "string.concat": [
+                                                {"var": "result"},
+                                                {
+                                                    "string.char_at": {
+                                                        "string": {"var": "str"},
+                                                        "index": {"subtract": {"a": {"var": "len"}, "b": {"add": {"a": {"var": "i"}, "b": 1}}}}
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "return": {"var": "result"}
+                    }
+                ]
+            },
+            "pad_left": {
+                "body": [
+                    {
+                        "var.set": {
+                            "name": "str",
+                            "value": {"var": "$1"}
+                        }
+                    },
+                    {
+                        "var.set": {
+                            "name": "length",
+                            "value": {"var": "$2"}
+                        }
+                    },
+                    {
+                        "var.set": {
+                            "name": "pad_char",
+                            "value": {"var": "$3"}
+                        }
+                    },
+                    {
+                        "var.set": {
+                            "name": "current_length",
+                            "value": {
+                                "string.length": {"var": "str"}
+                            }
+                        }
+                    },
+                    {
+                        "if": {
+                            "condition": {
+                                "compare": {
+                                    "op": ">=",
+                                    "a": {"var": "current_length"},
+                                    "b": {"var": "length"}
+                                }
+                            },
+                            "then": [
+                                {
+                                    "return": {"var": "str"}
+                                }
+                            ],
+                            "else": [
+                                {
+                                    "var.set": {
+                                        "name": "padding",
+                                        "value": ""
+                                    }
+                                },
+                                {
+                                    "var.set": {
+                                        "name": "padding_length",
+                                        "value": {
+                                            "subtract": {
+                                                "a": {"var": "length"},
+                                                "b": {"var": "current_length"}
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "loop": {
+                                        "from": 0,
+                                        "to": {"subtract": {"a": {"var": "padding_length"}, "b": 1}},
+                                        "as": "i",
+                                        "body": [
+                                            {
+                                                "var.set": {
+                                                    "name": "padding",
+                                                    "value": {
+                                                        "string.concat": [
+                                                            {"var": "padding"},
+                                                            {"var": "pad_char"}
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "return": {
+                                        "string.concat": [
+                                            {"var": "padding"},
+                                            {"var": "str"}
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "pad_right": {
+                "body": [
+                    {
+                        "var.set": {
+                            "name": "str",
+                            "value": {"var": "$1"}
+                        }
+                    },
+                    {
+                        "var.set": {
+                            "name": "length",
+                            "value": {"var": "$2"}
+                        }
+                    },
+                    {
+                        "var.set": {
+                            "name": "pad_char",
+                            "value": {"var": "$3"}
+                        }
+                    },
+                    {
+                        "var.set": {
+                            "name": "current_length",
+                            "value": {
+                                "string.length": {"var": "str"}
+                            }
+                        }
+                    },
+                    {
+                        "if": {
+                            "condition": {
+                                "compare": {
+                                    "op": ">=",
+                                    "a": {"var": "current_length"},
+                                    "b": {"var": "length"}
+                                }
+                            },
+                            "then": [
+                                {
+                                    "return": {"var": "str"}
+                                }
+                            ],
+                            "else": [
+                                {
+                                    "var.set": {
+                                        "name": "padding",
+                                        "value": ""
+                                    }
+                                },
+                                {
+                                    "var.set": {
+                                        "name": "padding_length",
+                                        "value": {
+                                            "subtract": {
+                                                "a": {"var": "length"},
+                                                "b": {"var": "current_length"}
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "loop": {
+                                        "from": 0,
+                                        "to": {"subtract": {"a": {"var": "padding_length"}, "b": 1}},
+                                        "as": "i",
+                                        "body": [
+                                            {
+                                                "var.set": {
+                                                    "name": "padding",
+                                                    "value": {
+                                                        "string.concat": [
+                                                            {"var": "padding"},
+                                                            {"var": "pad_char"}
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "return": {
+                                        "string.concat": [
+                                            {"var": "str"},
+                                            {"var": "padding"}
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    }
+} 

@@ -9,6 +9,7 @@ repository = "https://github.com/HelloAIXIAOJI/NeoJiLang"
 license = "MIT"
 keywords = ["interpreter", "json", "script", "language"]
 categories = ["parser-implementations", "command-line-utilities"]
+default-run = "neo_jilang"
 
 [dependencies]
 encoding_rs = "0.8.35"

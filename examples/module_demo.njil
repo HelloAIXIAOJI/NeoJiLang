@@ -1,0 +1,125 @@
+{
+    "import": [
+        "math.njim"
+    ],
+    "program": {
+        "main": {
+            "body": [
+                {
+                    "println": {
+                        "content": "测试模块系统"
+                    }
+                },
+                {
+                    "println": {
+                        "content": "数学常量 PI = ${const:math.PI}"
+                    }
+                },
+                {
+                    "println": {
+                        "content": "数学常量 E = ${const:math.E}"
+                    }
+                },
+                {
+                    "var.set": {
+                        "name": "result1",
+                        "value": {
+                            "function.call": {
+                                "name": "math.add",
+                                "args": [10, 5]
+                            }
+                        }
+                    }
+                },
+                {
+                    "println": {
+                        "content": "10 + 5 = ${var:result1}"
+                    }
+                },
+                {
+                    "var.set": {
+                        "name": "result2",
+                        "value": {
+                            "function.call": {
+                                "name": "math.subtract",
+                                "args": [10, 5]
+                            }
+                        }
+                    }
+                },
+                {
+                    "println": {
+                        "content": "10 - 5 = ${var:result2}"
+                    }
+                },
+                {
+                    "var.set": {
+                        "name": "result3",
+                        "value": {
+                            "function.call": {
+                                "name": "math.multiply",
+                                "args": [10, 5]
+                            }
+                        }
+                    }
+                },
+                {
+                    "println": {
+                        "content": "10 * 5 = ${var:result3}"
+                    }
+                },
+                {
+                    "var.set": {
+                        "name": "result4",
+                        "value": {
+                            "function.call": {
+                                "name": "math.square",
+                                "args": [5]
+                            }
+                        }
+                    }
+                },
+                {
+                    "println": {
+                        "content": "5^2 = ${var:result4}"
+                    }
+                },
+                {
+                    "var.set": {
+                        "name": "result5",
+                        "value": {
+                            "function.call": {
+                                "name": "math.cube",
+                                "args": [3]
+                            }
+                        }
+                    }
+                },
+                {
+                    "println": {
+                        "content": "3^3 = ${var:result5}"
+                    }
+                },
+                {
+                    "var.set": {
+                        "name": "result6",
+                        "value": {
+                            "function.call": {
+                                "name": "math.power",
+                                "args": [2, 8]
+                            }
+                        }
+                    }
+                },
+                {
+                    "println": {
+                        "content": "2^8 = ${var:result6}"
+                    }
+                },
+                {
+                    "return": "模块系统测试成功！"
+                }
+            ]
+        }
+    }
+} 

@@ -1,0 +1,136 @@
+{
+    "module": "math",
+    "namespace": "math",
+    "description": "数学函数模块",
+    "author": "NeoJiLang Team",
+    "version": "1.0.0",
+    "exports": {
+        "constants": {
+            "PI": 3.14159265359,
+            "E": 2.71828182846,
+            "GOLDEN_RATIO": 1.61803398875
+        },
+        "functions": {
+            "add": {
+                "body": [
+                    {
+                        "return": {
+                            "add": [
+                                {"var": "$1"},
+                                {"var": "$2"}
+                            ]
+                        }
+                    }
+                ]
+            },
+            "subtract": {
+                "body": [
+                    {
+                        "return": {
+                            "subtract": [
+                                {"var": "$1"},
+                                {"var": "$2"}
+                            ]
+                        }
+                    }
+                ]
+            },
+            "multiply": {
+                "body": [
+                    {
+                        "return": {
+                            "multiply": [
+                                {"var": "$1"},
+                                {"var": "$2"}
+                            ]
+                        }
+                    }
+                ]
+            },
+            "divide": {
+                "body": [
+                    {
+                        "return": {
+                            "divide": [
+                                {"var": "$1"},
+                                {"var": "$2"}
+                            ]
+                        }
+                    }
+                ]
+            },
+            "square": {
+                "body": [
+                    {
+                        "return": {
+                            "multiply": [
+                                {"var": "$1"},
+                                {"var": "$1"}
+                            ]
+                        }
+                    }
+                ]
+            },
+            "cube": {
+                "body": [
+                    {
+                        "return": {
+                            "multiply": [
+                                {"var": "$1"},
+                                {
+                                    "multiply": [
+                                        {"var": "$1"},
+                                        {"var": "$1"}
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "power": {
+                "body": [
+                    {
+                        "var.set": {
+                            "name": "result",
+                            "value": 1
+                        }
+                    },
+                    {
+                        "var.set": {
+                            "name": "base",
+                            "value": {"var": "$1"}
+                        }
+                    },
+                    {
+                        "var.set": {
+                            "name": "exponent",
+                            "value": {"var": "$2"}
+                        }
+                    },
+                    {
+                        "loop.for": {
+                            "count": {"var": "exponent"},
+                            "body": [
+                                {
+                                    "var.set": {
+                                        "name": "result",
+                                        "value": {
+                                            "multiply": [
+                                                {"var": "result"},
+                                                {"var": "base"}
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "return": {"var": "result"}
+                    }
+                ]
+            }
+        }
+    }
+} 
