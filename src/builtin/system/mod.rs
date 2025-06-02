@@ -15,6 +15,7 @@ pub mod copy;
 pub mod move_file;
 pub mod list;
 pub mod process;
+pub mod env;
 
 // 从各个子模块导出静态处理器实例
 pub use exists::FS_EXISTS_HANDLER;
@@ -32,6 +33,11 @@ pub use process::spawn::PROCESS_SPAWN_HANDLER;
 pub use process::pid::PROCESS_PID_HANDLER;
 pub use process::list::PROCESS_LIST_HANDLER;
 pub use process::kill::PROCESS_KILL_HANDLER;
+
+// 从环境变量模块导出静态处理器实例
+pub use env::get::ENV_GET_HANDLER;
+pub use env::set::ENV_SET_HANDLER;
+pub use env::list::ENV_LIST_HANDLER;
 
 /// System模块，提供系统和环境相关功能
 pub struct SystemModule;
@@ -70,6 +76,16 @@ impl super::BuiltinModule for SystemModule {
         ];
         
         handlers.extend(process_handlers);
+        
+        // 添加环境变量相关处理器
+        let env_handlers: Vec<&'static dyn StatementHandler> = vec![
+            &ENV_GET_HANDLER,
+            &ENV_SET_HANDLER,
+            &ENV_LIST_HANDLER,
+        ];
+        
+        handlers.extend(env_handlers);
+        
         handlers
     }
 }

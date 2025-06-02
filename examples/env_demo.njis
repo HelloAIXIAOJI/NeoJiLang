@@ -1,0 +1,58 @@
+[
+  {"print": "===== 环境变量功能演示 =====\n"},
+  
+  {"print": "1. 设置环境变量:"},
+  {"var.set": {"name": "set_result", "value": {"system.env.set": {"name": "NJIL_DEMO_VAR", "value": "Hello from NeoJiLang!"}}}},
+  {"println": {"content": {"string.concat": ["设置环境变量结果: ", {"var": "set_result"}]}}},
+  
+  {"print": "\n2. 获取环境变量:"},
+  {"var.set": {"name": "demo_var", "value": {"system.env.get": "NJIL_DEMO_VAR"}}},
+  {"println": {"content": {"string.concat": ["NJIL_DEMO_VAR = ", {"var": "demo_var"}]}}},
+  
+  {"print": "\n3. 获取系统环境变量:"},
+  {"var.set": {"name": "path_var", "value": {"system.env.get": "PATH"}}},
+  {"println": {"content": {"string.concat": ["PATH = ", {"var": "path_var"}]}}},
+  
+  {"print": "\n4. 获取不存在的环境变量:"},
+  {"var.set": {"name": "non_existent", "value": {"system.env.get": "NJIL_NON_EXISTENT_VAR"}}},
+  {"println": {"content": {"string.concat": ["不存在的环境变量值: ", {"var": "non_existent"}]}}},
+  
+  {"print": "\n5. 列出所有环境变量:"},
+  {"var.set": {"name": "env_list", "value": {"system.env.list": null}}},
+  {"println": {"content": "环境变量列表 (部分):"}},
+  
+  {"println": {"content": "- 常用系统环境变量:"}},
+  
+  {"var.set": {"name": "home_var", "value": {"system.env.get": "HOME"}}},
+  {"if": {
+    "condition": {"var": "home_var"},
+    "then": [{"println": {"content": {"string.concat": ["  HOME = ", {"var": "home_var"}]}}}],
+    "else": [{"println": {"content": "  HOME = 未设置"}}]
+  }},
+  
+  {"var.set": {"name": "userprofile_var", "value": {"system.env.get": "USERPROFILE"}}},
+  {"if": {
+    "condition": {"var": "userprofile_var"},
+    "then": [{"println": {"content": {"string.concat": ["  USERPROFILE = ", {"var": "userprofile_var"}]}}}],
+    "else": [{"println": {"content": "  USERPROFILE = 未设置"}}]
+  }},
+  
+  {"var.set": {"name": "username_var", "value": {"system.env.get": "USERNAME"}}},
+  {"if": {
+    "condition": {"var": "username_var"},
+    "then": [{"println": {"content": {"string.concat": ["  USERNAME = ", {"var": "username_var"}]}}}],
+    "else": [{"println": {"content": "  USERNAME = 未设置"}}]
+  }},
+  
+  {"var.set": {"name": "lang_var", "value": {"system.env.get": "LANG"}}},
+  {"if": {
+    "condition": {"var": "lang_var"},
+    "then": [{"println": {"content": {"string.concat": ["  LANG = ", {"var": "lang_var"}]}}}],
+    "else": [{"println": {"content": "  LANG = 未设置"}}]
+  }},
+  
+  {"println": {"content": "- 自定义环境变量:"}},
+  {"println": {"content": {"string.concat": ["  NJIL_DEMO_VAR = ", {"var": "demo_var"}]}}},
+  
+  {"print": "\n===== 环境变量功能演示结束 ====="}
+] 
