@@ -9,7 +9,7 @@ env:
   # 定义项目名（更改为实际二进制名称）
   BINARY_NAME: neo_jilang
   # 显示名称保持不变
-  PROJECT_NAME: NeoJiLang
+  PROJECT_NAME: neo_jilang
 
 jobs:
   build:
