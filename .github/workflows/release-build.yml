@@ -1,5 +1,6 @@
 name: Build and Release
-
+# 随便找的一个GitHub Actions，用于构建和发布NeoJiLang
+# 哪个网站忘了，特别感谢
 on:
   release:
     types: [published]
