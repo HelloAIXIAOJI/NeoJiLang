@@ -1,6 +1,6 @@
 [package]
 name = "neo_jilang"
-version = "0.2.3"
+version = "0.2.4"
 edition = "2021"
 authors = ["HelloAIXIAOJI", "All NeoJiLang contributors", "All JiLang contributors"]
 description = "一个基于JSON的轻量级脚本语言解释器"
