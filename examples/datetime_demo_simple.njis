@@ -1,0 +1,30 @@
+[
+  {"print": "===== DateTime模块功能演示 =====\n"},
+  
+  {"print": "1. 获取当前日期:"},
+  {"var.set": {"name": "today", "value": {"datetime.date": null}}},
+  {"println": {"content": {"string.concat": ["今天是: ", {"var": "today"}]}}},
+  
+  {"print": "\n2. 获取当前时间:"},
+  {"var.set": {"name": "current_time", "value": {"datetime.time": null}}},
+  {"println": {"content": {"string.concat": ["现在时间是: ", {"var": "current_time"}]}}},
+  
+  {"print": "\n3. 获取当前时间戳:"},
+  {"println": {"content": {"string.concat": ["当前时间戳(秒): ", {"datetime.now": {"unit": "s"}}]}}},
+  
+  {"print": "\n4. 测量代码执行时间:"},
+  {"datetime.measure": {"action": "start", "name": "demo"}},
+  
+  {"print": "执行简单计算..."},
+  {"var.set": {"name": "result", "value": 0}},
+  {"loop.for": {
+    "count": 1000,
+    "body": [
+      {"var.set": {"name": "result", "value": {"math.add": [{"var": "result"}, 1]}}}
+    ]
+  }},
+  
+  {"println": {"content": {"string.concat": ["操作耗时(毫秒): ", {"datetime.measure": {"action": "end", "name": "demo"}}]}}},
+  
+  {"print": "\n===== DateTime模块功能演示结束 ====="}
+] 

@@ -1,0 +1,59 @@
+[
+  {"print": "===== DateTime模块功能演示 =====\n"},
+  
+  {"print": "1. 获取当前日期:"},
+  {"var.set": {"name": "today", "value": {"datetime.date": null}}},
+  {"println": {"content": {"string.concat": ["今天是: ", {"var": "today"}]}}},
+  
+  {"print": "\n2. 获取自定义格式日期:"},
+  {"var.set": {"name": "formatted_date", "value": {"datetime.date": {"format": "%Y年%m月%d日"}}}},
+  {"println": {"content": {"string.concat": ["中文日期格式: ", {"var": "formatted_date"}]}}},
+  
+  {"print": "\n3. 获取当前时间:"},
+  {"var.set": {"name": "current_time", "value": {"datetime.time": null}}},
+  {"println": {"content": {"string.concat": ["现在时间是: ", {"var": "current_time"}]}}},
+  
+  {"print": "\n4. 获取自定义格式时间:"},
+  {"var.set": {"name": "formatted_time", "value": {"datetime.time": {"format": "%H时%M分%S秒"}}}},
+  {"println": {"content": {"string.concat": ["中文时间格式: ", {"var": "formatted_time"}]}}},
+  
+  {"print": "\n5. 获取当前时间戳:"},
+  {"var.set": {"name": "timestamp_ms", "value": {"datetime.now": null}}},
+  {"println": {"content": {"string.concat": ["当前时间戳(毫秒): ", {"var": "timestamp_ms"}]}}},
+  
+  {"var.set": {"name": "timestamp_s", "value": {"datetime.now": {"unit": "s"}}}},
+  {"println": {"content": {"string.concat": ["当前时间戳(秒): ", {"var": "timestamp_s"}]}}},
+  
+  {"print": "\n6. 格式化时间戳:"},
+  {"var.set": {"name": "example_timestamp", "value": 1622505600}},
+  {"var.set": {"name": "formatted", "value": {"datetime.format": {"timestamp": {"var": "example_timestamp"}, "format": "%Y-%m-%d %H:%M:%S"}}}},
+  {"println": {"content": {"string.concat": ["时间戳 ", {"var": "example_timestamp"}, " 格式化后: ", {"var": "formatted"}]}}},
+  
+  {"print": "\n7. 解析时间字符串:"},
+  {"var.set": {"name": "time_string", "value": "2023-01-15 08:30:00"}},
+  {"var.set": {"name": "parsed_timestamp", "value": {"datetime.parse": {"time": {"var": "time_string"}, "format": "%Y-%m-%d %H:%M:%S"}}}},
+  {"println": {"content": {"string.concat": ["时间字符串 '", {"var": "time_string"}, "' 解析为时间戳: ", {"var": "parsed_timestamp"}]}}},
+  
+  {"print": "\n8. 测量代码执行时间:"},
+  {"println": {"content": "开始测量..."}},
+  
+  {"datetime.measure": {"action": "start", "name": "demo"}},
+  
+  {"print": "执行耗时操作(模拟)..."},
+  {"var.set": {"name": "result", "value": 0}},
+  {"loop.for": {
+    "count": 1000000,
+    "body": [
+      {"var.set": {"name": "result", "value": {"math.add": [{"var": "result"}, 1]}}}
+    ]
+  }},
+  {"println": {"content": {"string.concat": ["计算结果: ", {"var": "result"}]}}},
+  
+  {"var.set": {"name": "elapsed", "value": {"datetime.measure": {"action": "end", "name": "demo"}}}},
+  {"println": {"content": {"string.concat": ["操作耗时: ", {"var": "elapsed"}, " 毫秒"]}}},
+  
+  {"var.set": {"name": "elapsed_s", "value": {"datetime.measure": {"action": "end", "name": "demo", "unit": "s"}}}},
+  {"println": {"content": {"string.concat": ["操作耗时: ", {"var": "elapsed_s"}, " 秒"]}}},
+  
+  {"print": "\n===== DateTime模块功能演示结束 ====="}
+] 
