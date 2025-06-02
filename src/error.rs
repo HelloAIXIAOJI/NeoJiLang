@@ -11,6 +11,7 @@ pub enum NjilError {
     ReturnValue(Value),
     LoopBreak,
     LoopContinue,
+    ThrowException(Value),
 }
 
 impl fmt::Display for NjilError {
@@ -23,6 +24,7 @@ impl fmt::Display for NjilError {
             NjilError::ReturnValue(_) => write!(f, "返回值"),
             NjilError::LoopBreak => write!(f, "循环中断"),
             NjilError::LoopContinue => write!(f, "循环继续"),
+            NjilError::ThrowException(value) => write!(f, "异常: {}", value),
         }
     }
 }

@@ -17,6 +17,8 @@ pub mod arithmetic;
 pub mod function_call;
 pub mod sleep;
 pub mod constant;
+pub mod throw;
+pub mod try_catch;
 
 use print::PRINT_HANDLER;
 use print::PRINTLN_HANDLER;
@@ -28,6 +30,8 @@ use control_flow::get_all_handlers as get_all_control_flow_handlers;
 pub use control_flow::{IF_HANDLER, WHILE_LOOP_HANDLER, FOR_LOOP_HANDLER, FOREACH_LOOP_HANDLER, BREAK_HANDLER, CONTINUE_HANDLER};
 use sleep::SLEEP_HANDLER;
 use constant::{CONST_HANDLER, CONST_SET_HANDLER, CONST_SET_MULTI_HANDLER, CONST_HAS_HANDLER};
+use throw::THROW_HANDLER;
+use try_catch::TRY_CATCH_HANDLER;
 
 use logic::{
     LOGIC_AND_HANDLER,
@@ -111,6 +115,10 @@ impl StatementRegistry {
         
         // 注册函数调用处理器
         registry.register_handler(&FUNCTION_CALL_HANDLER);
+        
+        // 注册异常处理语句处理器
+        registry.register_handler(&THROW_HANDLER);
+        registry.register_handler(&TRY_CATCH_HANDLER);
         
         registry
     }

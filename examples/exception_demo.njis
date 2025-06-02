@@ -1,0 +1,122 @@
+[
+  {"print": "===== 异常处理功能演示 =====\n"},
+  
+  {"print": "1. 基本异常捕获示例:"},
+  {"try": {
+    "try": [
+      {"print": "\n尝试执行代码..."},
+      {"throw": "发生了一个简单的错误"},
+      {"print": "这行不会被执行"}
+    ],
+    "catch": {
+      "var": "error",
+      "body": [
+        {"print": "\n捕获到异常: "},
+        {"println": {"content": {"var": "error"}}}
+      ]
+    }
+  }},
+  
+  {"print": "\n2. 捕获未定义变量异常:"},
+  {"try": {
+    "try": [
+      {"print": "\n尝试访问未定义的变量: "},
+      {"println": {"content": {"var": "undefined_variable"}}}
+    ],
+    "catch": {
+      "var": "error",
+      "body": [
+        {"print": "捕获到异常: "},
+        {"println": {"content": {"var": "error"}}}
+      ]
+    }
+  }},
+  
+  {"print": "\n3. 复杂异常处理示例:"},
+  {"try": {
+    "try": [
+      {"var.set": {"name": "value", "value": 10}},
+      {"print": "\n检查变量值..."},
+      {"if": {
+        "condition": {"math.compare": {"left": {"var": "value"}, "right": 5, "op": ">"}},
+        "then": [
+          {"print": "值太大，抛出异常\n"},
+          {"throw": {"code": 100, "message": "值超过了5", "value": {"var": "value"}}}
+        ],
+        "else": [
+          {"print": "值正常"}
+        ]
+      }}
+    ],
+    "catch": {
+      "var": "err",
+      "body": [
+        {"print": "捕获到复杂异常对象:\n"},
+        {"print": "错误代码: "},
+        {"println": {"content": {"json.get": {"object": {"var": "err"}, "key": "code"}}}},
+        {"print": "错误信息: "},
+        {"println": {"content": {"json.get": {"object": {"var": "err"}, "key": "message"}}}},
+        {"print": "相关值: "},
+        {"println": {"content": {"json.get": {"object": {"var": "err"}, "key": "value"}}}}
+      ]
+    }
+  }},
+  
+  {"print": "\n4. 嵌套异常处理示例:"},
+  {"try": {
+    "try": [
+      {"print": "\n外层try块开始\n"},
+      {"try": {
+        "try": [
+          {"print": "内层try块开始\n"},
+          {"throw": "内层异常"},
+          {"print": "内层try块结束(不会执行)"}
+        ],
+        "catch": {
+          "var": "inner_error",
+          "body": [
+            {"print": "内层catch捕获异常: "},
+            {"println": {"content": {"var": "inner_error"}}},
+            {"print": "内层重新抛出异常\n"},
+            {"throw": {"origin": "inner", "message": {"var": "inner_error"}}}
+          ]
+        }
+      }},
+      {"print": "外层try块结束(不会执行)"}
+    ],
+    "catch": {
+      "var": "outer_error",
+      "body": [
+        {"print": "外层catch捕获异常: "},
+        {"println": {"content": {"var": "outer_error"}}}
+      ]
+    }
+  }},
+  
+  {"print": "\n5. 异常传播示例 - 无catch块:"},
+  {"var.set": {"name": "exception_caught", "value": false}},
+  {"try": {
+    "try": [
+      {"print": "\n外层try开始\n"},
+      {"try": {
+        "try": [
+          {"print": "内层try开始(无catch块)\n"},
+          {"throw": "未捕获的内层异常"},
+          {"print": "内层try结束(不会执行)"}
+        ]
+      }},
+      {"print": "外层try结束(不会执行)"}
+    ],
+    "catch": {
+      "var": "propagated_error",
+      "body": [
+        {"print": "外层catch捕获传播的异常: "},
+        {"println": {"content": {"var": "propagated_error"}}},
+        {"var.set": {"name": "exception_caught", "value": true}}
+      ]
+    }
+  }},
+  {"println": {"content": {"string.concat": ["\n异常是否被捕获: ", {"var": "exception_caught"}]}}},
+  
+  {"print": "\n===== 异常处理功能演示结束 ====="}
+] 

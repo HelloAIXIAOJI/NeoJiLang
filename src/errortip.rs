@@ -134,4 +134,27 @@ pub mod sleep {
     pub fn duration_cannot_be_negative() -> String {
         "延时时间不能为负数".to_string()
     }
+}
+
+/// 异常处理相关错误信息
+pub mod exception {
+    /// throw语句参数错误
+    pub fn throw_requires_value() -> &'static str {
+        "throw语句需要一个异常值参数"
+    }
+    
+    /// try/catch语句参数类型错误
+    pub fn try_catch_requires_object() -> &'static str {
+        "try/catch语句需要一个对象参数"
+    }
+    
+    /// try/catch语句缺少必要字段
+    pub fn try_catch_missing_fields() -> &'static str {
+        "try/catch语句需要try字段，且可选地包含catch字段"
+    }
+    
+    /// catch块var字段错误
+    pub fn catch_var_requires_string() -> &'static str {
+        "catch块的var字段（异常变量）必须是字符串"
+    }
 } 
