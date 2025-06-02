@@ -1,0 +1,41 @@
+[
+  {"print": "===== 进程控制功能演示 =====\n"},
+  
+  {"print": "1. 获取当前进程ID:"},
+  {"var.set": {"name": "current_pid", "value": {"system.process.pid": null}}},
+  {"println": {"content": {"string.concat": ["当前进程ID: ", {"var": "current_pid"}]}}},
+  
+  {"print": "\n2. 执行命令并等待完成:"},
+  {"var.set": {"name": "echo_result", "value": {"system.process.exec": "echo Hello from subprocess!"}}},
+  {"println": {"content": "命令执行结果:"}},
+  {"println": {"content": {"string.concat": ["- 退出码: ", {"var": "echo_result.exitCode"}]}}},
+  {"println": {"content": {"string.concat": ["- 成功: ", {"var": "echo_result.success"}]}}},
+  {"println": {"content": {"string.concat": ["- 标准输出: ", {"var": "echo_result.stdout"}]}}},
+  
+  {"print": "\n3. 带参数执行命令:"},
+  {"var.set": {"name": "cmd_result", "value": {"system.process.exec": {
+    "command": "echo",
+    "args": ["Hello", "World", "from", "NeoJiLang!"],
+    "shell": true
+  }}}},
+  {"println": {"content": {"string.concat": ["命令输出: ", {"var": "cmd_result.stdout"}]}}},
+  
+  {"print": "\n4. 启动后台进程:"},
+  {"var.set": {"name": "spawn_result", "value": {"system.process.spawn": {
+    "command": "ping",
+    "args": ["127.0.0.1", "-n", "2"]
+  }}}},
+  {"println": {"content": {"string.concat": ["后台进程ID: ", {"var": "spawn_result.pid"}]}}},
+  
+  {"print": "\n5. 列出运行中的进程 (显示前5个进程):"},
+  {"var.set": {"name": "process_list", "value": {"system.process.list": null}}},
+  {"println": {"content": "进程列表（省略详细内容）:"}},
+  {"println": {"content": "通过system.process.list命令可以获取完整的进程列表"}},
+  {"println": {"content": "返回的是一个进程对象数组，每个对象包含pid、name等属性"}},
+  
+  {"print": "\n6. 终止进程:"},
+  {"println": {"content": "注意: 本演示不会实际终止任何进程"}},
+  {"println": {"content": "示例用法: {\"system.process.kill\": 进程ID} 或 {\"system.process.kill\": {\"pid\": 进程ID}}"}},
+  
+  {"print": "\n===== 进程控制功能演示结束 ====="}
+] 

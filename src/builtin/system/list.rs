@@ -3,53 +3,47 @@ use crate::interpreter::Interpreter;
 use crate::statements::StatementHandler;
 use serde_json::Value;
 use std::fs;
-use super::get_path_param;
+use std::path::Path;
 
-/// 列出目录内容处理器
+/// 处理文件系统列出目录内容的操作
 pub struct FsListHandler;
 
-// 静态实例
-pub static FS_LIST_HANDLER: FsListHandler = FsListHandler;
-
 impl StatementHandler for FsListHandler {
+    fn name(&self) -> &'static str {
+        "system.fs.list"
+    }
+
     fn handle(&self, interpreter: &mut Interpreter, value: &Value) -> Result<Value, NjilError> {
-        // 获取路径参数
-        let path = get_path_param(interpreter, value)?;
+        let path = super::get_path_param(interpreter, value)?;
         
-        // 列出目录内容
-        let entries = fs::read_dir(&path)
+        // 检查路径是否存在且是目录
+        let path_obj = Path::new(&path);
+        if !path_obj.exists() {
+            return Err(NjilError::ExecutionError(format!("路径不存在: {}", path)));
+        }
+        
+        if !path_obj.is_dir() {
+            return Err(NjilError::ExecutionError(format!("路径不是目录: {}", path)));
+        }
+        
+        // 读取目录内容
+        let entries = fs::read_dir(path)
             .map_err(|e| NjilError::ExecutionError(format!("读取目录失败: {}", e)))?;
         
-        // 创建结果数组
+        // 将目录内容转换为JSON数组
         let mut result = Vec::new();
-        
-        // 遍历目录条目
         for entry in entries {
-            if let Ok(entry) = entry {
-                let file_name = entry.file_name().to_string_lossy().to_string();
-                let file_type = entry.file_type().map_err(|e| NjilError::ExecutionError(format!("获取文件类型失败: {}", e)))?;
-                
-                // 创建条目对象
-                let mut entry_obj = serde_json::Map::new();
-                entry_obj.insert("name".to_string(), Value::String(file_name));
-                entry_obj.insert("isDir".to_string(), Value::Bool(file_type.is_dir()));
-                entry_obj.insert("isFile".to_string(), Value::Bool(file_type.is_file()));
-                
-                result.push(Value::Object(entry_obj));
-            }
+            let entry = entry.map_err(|e| NjilError::ExecutionError(format!("读取目录条目失败: {}", e)))?;
+            let file_name = entry.file_name().to_string_lossy().to_string();
+            result.push(Value::String(file_name));
         }
         
         Ok(Value::Array(result))
     }
-    
-    fn name(&self) -> &'static str {
-        "system.fs.list"
-    }
-    
-    fn aliases(&self) -> Vec<&'static str> {
-        vec!["fs.list"]
-    }
 }
+
+/// 静态实例
+pub static FS_LIST_HANDLER: FsListHandler = FsListHandler;
 
 #[cfg(test)]
 mod tests {
@@ -59,57 +53,44 @@ mod tests {
     
     #[test]
     fn test_fs_list() {
-        let mut interpreter = Interpreter::new();
-        
-        // 创建临时目录和文件
         let temp_dir = tempdir().unwrap();
-        let file1_path = temp_dir.path().join("file1.txt");
-        let file2_path = temp_dir.path().join("file2.txt");
-        let dir_path = temp_dir.path().join("subdir");
+        let dir_path = temp_dir.path().to_str().unwrap().to_string();
         
-        File::create(&file1_path).unwrap();
-        File::create(&file2_path).unwrap();
-        std::fs::create_dir(&dir_path).unwrap();
+        // 创建测试文件
+        File::create(temp_dir.path().join("file1.txt")).unwrap();
+        File::create(temp_dir.path().join("file2.txt")).unwrap();
+        fs::create_dir(temp_dir.path().join("subdir")).unwrap();
+        
+        let mut interpreter = Interpreter::new();
+        let handler = FsListHandler;
         
         // 测试列出目录内容
-        let result = FS_LIST_HANDLER.handle(
-            &mut interpreter, 
-            &Value::String(temp_dir.path().to_str().unwrap().to_string())
-        ).unwrap();
+        let value = Value::String(dir_path.clone());
+        let result = handler.handle(&mut interpreter, &value).unwrap();
         
-        if let Value::Array(entries) = result {
-            assert_eq!(entries.len(), 3); // 两个文件和一个目录
-            
-            // 检查是否包含我们创建的文件和目录
-            let mut found_file1 = false;
-            let mut found_file2 = false;
-            let mut found_dir = false;
-            
-            for entry in entries {
-                if let Value::Object(obj) = entry {
-                    if let Some(Value::String(name)) = obj.get("name") {
-                        if name == "file1.txt" {
-                            found_file1 = true;
-                            assert_eq!(obj.get("isFile"), Some(&Value::Bool(true)));
-                            assert_eq!(obj.get("isDir"), Some(&Value::Bool(false)));
-                        } else if name == "file2.txt" {
-                            found_file2 = true;
-                            assert_eq!(obj.get("isFile"), Some(&Value::Bool(true)));
-                            assert_eq!(obj.get("isDir"), Some(&Value::Bool(false)));
-                        } else if name == "subdir" {
-                            found_dir = true;
-                            assert_eq!(obj.get("isFile"), Some(&Value::Bool(false)));
-                            assert_eq!(obj.get("isDir"), Some(&Value::Bool(true)));
-                        }
-                    }
-                }
-            }
-            
-            assert!(found_file1, "file1.txt not found in directory listing");
-            assert!(found_file2, "file2.txt not found in directory listing");
-            assert!(found_dir, "subdir not found in directory listing");
+        if let Value::Array(files) = result {
+            assert_eq!(files.len(), 3);
+            // 检查是否包含所有文件
+            let file_names: Vec<String> = files.iter()
+                .map(|v| v.as_str().unwrap().to_string())
+                .collect();
+            assert!(file_names.contains(&"file1.txt".to_string()));
+            assert!(file_names.contains(&"file2.txt".to_string()));
+            assert!(file_names.contains(&"subdir".to_string()));
         } else {
-            panic!("Expected array result from fs.list");
+            panic!("Expected array result");
         }
+        
+        // 测试非目录路径
+        let non_dir_path = temp_dir.path().join("file1.txt").to_str().unwrap().to_string();
+        let value = Value::String(non_dir_path);
+        let result = handler.handle(&mut interpreter, &value);
+        assert!(result.is_err());
+        
+        // 测试不存在的路径
+        let non_existent_path = temp_dir.path().join("non_existent").to_str().unwrap().to_string();
+        let value = Value::String(non_existent_path);
+        let result = handler.handle(&mut interpreter, &value);
+        assert!(result.is_err());
     }
 } 

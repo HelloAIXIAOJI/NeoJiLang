@@ -14,6 +14,7 @@ pub mod remove;
 pub mod copy;
 pub mod move_file;
 pub mod list;
+pub mod process;
 
 // 从各个子模块导出静态处理器实例
 pub use exists::FS_EXISTS_HANDLER;
@@ -24,6 +25,13 @@ pub use remove::FS_REMOVE_HANDLER;
 pub use copy::FS_COPY_HANDLER;
 pub use move_file::FS_MOVE_HANDLER;
 pub use list::FS_LIST_HANDLER;
+
+// 从进程模块导出静态处理器实例
+pub use process::exec::PROCESS_EXEC_HANDLER;
+pub use process::spawn::PROCESS_SPAWN_HANDLER;
+pub use process::pid::PROCESS_PID_HANDLER;
+pub use process::list::PROCESS_LIST_HANDLER;
+pub use process::kill::PROCESS_KILL_HANDLER;
 
 /// System模块，提供系统和环境相关功能
 pub struct SystemModule;
@@ -40,7 +48,7 @@ impl super::BuiltinModule for SystemModule {
     }
     
     fn get_handlers(&self) -> Vec<&'static dyn StatementHandler> {
-        vec![
+        let mut handlers: Vec<&'static dyn StatementHandler> = vec![
             // 文件系统相关处理器
             &FS_EXISTS_HANDLER,
             &FS_IS_FILE_HANDLER,
@@ -50,7 +58,19 @@ impl super::BuiltinModule for SystemModule {
             &FS_COPY_HANDLER,
             &FS_MOVE_HANDLER,
             &FS_LIST_HANDLER,
-        ]
+        ];
+        
+        // 添加进程相关处理器
+        let process_handlers: Vec<&'static dyn StatementHandler> = vec![
+            &PROCESS_EXEC_HANDLER,
+            &PROCESS_SPAWN_HANDLER,
+            &PROCESS_PID_HANDLER,
+            &PROCESS_LIST_HANDLER,
+            &PROCESS_KILL_HANDLER,
+        ];
+        
+        handlers.extend(process_handlers);
+        handlers
     }
 }
 
