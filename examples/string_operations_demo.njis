@@ -1,0 +1,76 @@
+[
+  {"print": "===== 字符串操作扩展功能演示 =====\n"},
+  
+  {"print": "1. 字符串分割 (string.split):\n"},
+  {"var.set": {"name": "text", "value": "苹果,香蕉,橙子,葡萄"}},
+  {"print": "原始字符串: "},
+  {"println": {"content": {"var": "text"}}},
+  {"print": "按逗号分割: "},
+  {"var.set": {"name": "fruits", "value": {"string.split": {"string": {"var": "text"}, "separator": ","}}}},
+  {"println": {"content": {"var": "fruits"}}},
+  {"print": "分割结果的第一个元素: "},
+  {"println": {"content": {"var": "fruits[0]"}}},
+  
+  {"print": "\n2. 字符串替换 (string.replace):\n"},
+  {"var.set": {"name": "message", "value": "Hello World! Hello NeoJiLang!"}},
+  {"print": "原始字符串: "},
+  {"println": {"content": {"var": "message"}}},
+  {"print": "替换'Hello'为'你好': "},
+  {"println": {"content": {"string.replace": {"string": {"var": "message"}, "old": "Hello", "new": "你好"}}}},
+  
+  {"print": "\n3. 字符串修剪 (string.trim):\n"},
+  {"var.set": {"name": "whitespace_text", "value": "   这是一段带有空白的文本    "}},
+  {"print": "原始字符串: '"},
+  {"print": {"var": "whitespace_text"}},
+  {"println": {"content": "'"}},
+  {"print": "修剪后: '"},
+  {"print": {"string.trim": {"string": {"var": "whitespace_text"}}}},
+  {"println": {"content": "'"}},
+  
+  {"print": "\n4. 字符串格式化 (string.format):\n"},
+  {"var.set": {"name": "user", "value": "张三"}},
+  {"var.set": {"name": "age", "value": 30}},
+  {"var.set": {"name": "city", "value": "北京"}},
+  {"print": "变量值: user="},
+  {"print": {"var": "user"}},
+  {"print": ", age="},
+  {"print": {"var": "age"}},
+  {"print": ", city="},
+  {"println": {"content": {"var": "city"}}},
+  {"print": "格式化结果: "},
+  {"println": {"content": {"string.format": {
+    "template": "用户{user}今年{age}岁，居住在{city}。",
+    "params": {
+      "user": {"var": "user"},
+      "age": {"var": "age"},
+      "city": {"var": "city"}
+    }
+  }}}},
+  
+  {"print": "\n5. 字符串操作组合:\n"},
+  {"var.set": {"name": "csv_data", "value": "id,name,age\n1,李四,25\n2,王五,32\n3,赵六,45"}},
+  {"print": "CSV数据:\n"},
+  {"println": {"content": {"var": "csv_data"}}},
+  {"print": "\n解析CSV数据的第二行:\n"},
+  {"var.set": {"name": "rows", "value": {"string.split": {"string": {"var": "csv_data"}, "separator": "\n"}}}},
+  {"var.set": {"name": "second_row", "value": {"var": "rows[1]"}}},
+  {"var.set": {"name": "fields", "value": {"string.split": {"string": {"var": "second_row"}, "separator": ","}}}},
+  {"print": "编号: "},
+  {"println": {"content": {"var": "fields[0]"}}},
+  {"print": "姓名: "},
+  {"println": {"content": {"var": "fields[1]"}}},
+  {"print": "年龄: "},
+  {"println": {"content": {"var": "fields[2]"}}},
+  
+  {"print": "\n将数据格式化为自定义字符串:\n"},
+  {"println": {"content": {"string.format": {
+    "template": "{name}的编号是{id}，今年{age}岁。",
+    "params": {
+      "id": {"var": "fields[0]"},
+      "name": {"var": "fields[1]"},
+      "age": {"var": "fields[2]"}
+    }
+  }}}},
+  
+  {"print": "\n===== 字符串操作扩展功能演示结束 ====="}
+] 

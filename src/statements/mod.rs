@@ -22,7 +22,7 @@ pub mod try_catch;
 
 use print::PRINT_HANDLER;
 use print::PRINTLN_HANDLER;
-use string::STRING_CONCAT_HANDLER;
+use string::{STRING_CONCAT_HANDLER, STRING_SPLIT_HANDLER, STRING_REPLACE_HANDLER, STRING_TRIM_HANDLER, STRING_FORMAT_HANDLER};
 use var::{VAR_HANDLER, VAR_SET_HANDLER, VAR_SET_MULTI_HANDLER};
 use return_stmt::RETURN_HANDLER;
 use json::{JSON_NEW_HANDLER, JSON_GET_HANDLER, JSON_SET_HANDLER};
@@ -119,6 +119,12 @@ impl StatementRegistry {
         // 注册异常处理语句处理器
         registry.register_handler(&THROW_HANDLER);
         registry.register_handler(&TRY_CATCH_HANDLER);
+        
+        // 注册扩展字符串操作处理器
+        registry.register_handler(&STRING_SPLIT_HANDLER);
+        registry.register_handler(&STRING_REPLACE_HANDLER);
+        registry.register_handler(&STRING_TRIM_HANDLER);
+        registry.register_handler(&STRING_FORMAT_HANDLER);
         
         registry
     }
