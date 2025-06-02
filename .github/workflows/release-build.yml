@@ -1,120 +1,89 @@
 name: Build and Release
-# 随便找的一个GitHub Actions，用于构建和发布NeoJiLang
-# 哪个网站忘了，特别感谢
 on:
   release:
     types: [published]
 
 env:
-  # 定义项目名（更改为实际二进制名称）
   BINARY_NAME: neo_jilang
-  # 显示名称保持不变
-  PROJECT_NAME: neo_jilang
 
 jobs:
   build:
+    name: Build ${{ matrix.os }}-${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
-          # macOS Intel (x86_64)
-          - os: macos-latest
-            target: x86_64-apple-darwin
-            platform_name: Mac-Intel
-            ext: ""
-          # macOS Apple Silicon (arm64)
-          - os: macos-latest
-            target: aarch64-apple-darwin
-            platform_name: Mac-Apple
-            ext: ""
-          # Linux x86_64
+          - os: windows-latest
+            arch: x86
+            rust_target: i686-pc-windows-msvc
+            binary_suffix: .exe
+            asset_name: windows-x86
+          - os: windows-latest
+            arch: x64
+            rust_target: x86_64-pc-windows-msvc
+            binary_suffix: .exe
+            asset_name: windows-x64
           - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            platform_name: Linux-x86_64
-            ext: ""
-          # Linux ARM64
+            arch: x86
+            rust_target: i686-unknown-linux-gnu
+            binary_suffix: ""
+            asset_name: linux-x86
           - os: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
-            platform_name: Linux-arm64
-            ext: ""
-            needs_aarch64_linux: true
-          # Windows 64-bit MSVC
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-            platform_name: Win-64
-            ext: ".exe"
-          # Windows 32-bit MSVC
-          - os: windows-latest
-            target: i686-pc-windows-msvc
-            platform_name: Win-32
-            ext: ".exe"
-          # Windows ARM64 MSVC
-          - os: windows-latest
-            target: aarch64-pc-windows-msvc
-            platform_name: Win-ARM
-            ext: ".exe"
+            arch: x64
+            rust_target: x86_64-unknown-linux-gnu
+            binary_suffix: ""
+            asset_name: linux-x64
+          - os: macos-latest
+            arch: x64
+            rust_target: x86_64-apple-darwin
+            binary_suffix: ""
+            asset_name: macos-x64
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-
-      # 安装跨平台编译依赖
-      - name: Install dependencies (Ubuntu)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential pkg-config libssl-dev
-
-      # 为ARM64 Linux设置交叉编译环境
-      - name: Setup cross-compilation for ARM64 Linux
-        if: matrix.needs_aarch64_linux
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-          echo 'CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc' >> $GITHUB_ENV
-          echo 'CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc' >> $GITHUB_ENV
-          echo 'CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++' >> $GITHUB_ENV
+        uses: actions/checkout@v3
 
       - name: Setup Rust
         uses: actions-rs/toolchain@v1
         with:
+          profile: minimal
           toolchain: stable
-          target: ${{ matrix.target }}
+          target: ${{ matrix.rust_target }}
           override: true
 
-      - name: Add target
-        run: rustup target add ${{ matrix.target }}
-
-      # 查看cargo配置
-      - name: Check binary name before build
+      - name: Install Linux x86 dependencies
+        if: matrix.os == 'ubuntu-latest' && matrix.arch == 'x86'
         run: |
-          cargo metadata --format-version=1 | grep -E "name|targets"
-          echo "Expected binary path will be: target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}${{ matrix.ext }}"
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y gcc-multilib
 
-      - name: Build release binary
+      - name: Build
         uses: actions-rs/cargo@v1
         with:
-          use-cross: ${{ runner.os == 'Linux' && matrix.target != 'x86_64-unknown-linux-gnu' }}
           command: build
-          args: --release --target ${{ matrix.target }}
-      
-      # Linux和macOS可能需要特殊处理
-      - name: Fix executable permissions (Linux/Mac)
-        if: runner.os == 'Linux' || runner.os == 'macOS'
-        run: chmod +x target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}
-
-      # 添加步骤检查构建输出
-      - name: Verify build output
+          args: --release --target ${{ matrix.rust_target }}
+          
+      - name: Package Binary
+        shell: bash
         run: |
-          ls -la target/${{ matrix.target }}/release/
-          echo "Looking for: ${{ env.BINARY_NAME }}${{ matrix.ext }}"
-
-      - name: Upload release asset
+          cd target/${{ matrix.rust_target }}/release
+          asset_name=${{ env.BINARY_NAME }}-${{ matrix.asset_name }}${{ matrix.binary_suffix }}
+          cp ${{ env.BINARY_NAME }}${{ matrix.binary_suffix }} ${asset_name}
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            7z a ${asset_name}.zip ${asset_name}
+            echo "ASSET_PATH=${asset_name}.zip" >> $GITHUB_ENV
+          else
+            tar -czf ${asset_name}.tar.gz ${asset_name}
+            echo "ASSET_PATH=${asset_name}.tar.gz" >> $GITHUB_ENV
+          fi
+          
+      - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}${{ matrix.ext }}
-          asset_name: ${{ env.PROJECT_NAME }}-${{ matrix.platform_name }}${{ matrix.ext }}
+          asset_path: target/${{ matrix.rust_target }}/release/${{ env.ASSET_PATH }}
+          asset_name: ${{ env.ASSET_PATH }}
           asset_content_type: application/octet-stream
