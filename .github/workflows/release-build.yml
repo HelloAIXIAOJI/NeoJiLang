@@ -5,6 +5,7 @@ on:
 
 env:
   BINARY_NAME: neo_jilang
+  RUSTFLAGS: "-A unused_imports"
 
 jobs:
   build:
@@ -38,18 +39,16 @@ jobs:
             rust_target: x86_64-apple-darwin
             binary_suffix: ""
             asset_name: macos-x64
+      fail-fast: false
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Setup Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: stable
-          target: ${{ matrix.rust_target }}
-          override: true
+          targets: ${{ matrix.rust_target }}
 
       - name: Install Linux x86 dependencies
         if: matrix.os == 'ubuntu-latest' && matrix.arch == 'x86'
@@ -59,10 +58,7 @@ jobs:
           sudo apt-get install -y gcc-multilib
 
       - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --target ${{ matrix.rust_target }}
+        run: cargo build --release --target ${{ matrix.rust_target }}
           
       - name: Package Binary
         shell: bash
@@ -79,11 +75,9 @@ jobs:
           fi
           
       - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
+        uses: softprops/action-gh-release@v1
+        if: github.event_name == 'release'
+        with:
+          files: target/${{ matrix.rust_target }}/release/${{ env.ASSET_PATH }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: target/${{ matrix.rust_target }}/release/${{ env.ASSET_PATH }}
-          asset_name: ${{ env.ASSET_PATH }}
-          asset_content_type: application/octet-stream
