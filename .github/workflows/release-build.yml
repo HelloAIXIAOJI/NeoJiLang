@@ -3,6 +3,11 @@ on:
   release:
     types: [published]
 
+# 明确定义工作流所需的权限
+permissions:
+  contents: write
+  packages: write
+
 env:
   BINARY_NAME: neo_jilang
   RUSTFLAGS: "-A unused_imports"
@@ -74,10 +79,30 @@ jobs:
             echo "ASSET_PATH=${asset_name}.tar.gz" >> $GITHUB_ENV
           fi
           
+      # 使用actions/github-script上传资产，这种方式权限处理更可靠
       - name: Upload Release Asset
-        uses: softprops/action-gh-release@v1
-        if: github.event_name == 'release'
+        uses: actions/github-script@v6
         with:
-          files: target/${{ matrix.rust_target }}/release/${{ env.ASSET_PATH }}
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            const assetPath = path.join(
+              process.env.GITHUB_WORKSPACE, 
+              'target', 
+              '${{ matrix.rust_target }}', 
+              'release', 
+              process.env.ASSET_PATH
+            );
+            
+            console.log(`Uploading ${assetPath} to release...`);
+            
+            await github.rest.repos.uploadReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: context.payload.release.id,
+              name: process.env.ASSET_PATH,
+              data: fs.readFileSync(assetPath)
+            });
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
