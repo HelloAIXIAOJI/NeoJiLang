@@ -19,6 +19,7 @@ jobs:
     strategy:
       matrix:
         include:
+          # Windows 平台
           - os: windows-latest
             arch: x86
             rust_target: i686-pc-windows-msvc
@@ -29,6 +30,13 @@ jobs:
             rust_target: x86_64-pc-windows-msvc
             binary_suffix: .exe
             asset_name: windows-x64
+          - os: windows-latest
+            arch: arm64
+            rust_target: aarch64-pc-windows-msvc
+            binary_suffix: .exe
+            asset_name: windows-arm64
+          
+          # Linux x86/x64 平台
           - os: ubuntu-latest
             arch: x86
             rust_target: i686-unknown-linux-gnu
@@ -39,11 +47,51 @@ jobs:
             rust_target: x86_64-unknown-linux-gnu
             binary_suffix: ""
             asset_name: linux-x64
+          
+          # Linux ARM 平台
+          - os: ubuntu-latest
+            arch: arm64
+            rust_target: aarch64-unknown-linux-gnu
+            binary_suffix: ""
+            asset_name: linux-arm64
+          - os: ubuntu-latest
+            arch: arm
+            rust_target: armv7-unknown-linux-gnueabihf
+            binary_suffix: ""
+            asset_name: linux-armv7
+          
+          # macOS 平台
           - os: macos-latest
             arch: x64
             rust_target: x86_64-apple-darwin
             binary_suffix: ""
             asset_name: macos-x64
+          - os: macos-latest
+            arch: arm64
+            rust_target: aarch64-apple-darwin
+            binary_suffix: ""
+            asset_name: macos-arm64
+            
+          # MUSL Linux (静态链接，适用于Alpine等)
+          - os: ubuntu-latest
+            arch: x64
+            rust_target: x86_64-unknown-linux-musl
+            binary_suffix: ""
+            asset_name: linux-musl-x64
+            
+          # FreeBSD
+          - os: ubuntu-latest
+            arch: x64
+            rust_target: x86_64-unknown-freebsd
+            binary_suffix: ""
+            asset_name: freebsd-x64
+            
+          # WebAssembly
+          - os: ubuntu-latest
+            arch: wasm
+            rust_target: wasm32-unknown-unknown
+            binary_suffix: ".wasm"
+            asset_name: wasm
       fail-fast: false
 
     steps:
@@ -55,6 +103,7 @@ jobs:
         with:
           targets: ${{ matrix.rust_target }}
 
+      # Linux x86 依赖安装
       - name: Install Linux x86 dependencies
         if: matrix.os == 'ubuntu-latest' && matrix.arch == 'x86'
         run: |
@@ -62,8 +111,42 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gcc-multilib
 
+      # Linux ARM 依赖安装
+      - name: Install Linux ARM dependencies
+        if: matrix.os == 'ubuntu-latest' && (matrix.arch == 'arm64' || matrix.arch == 'arm')
+        run: |
+          sudo apt-get update
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            sudo apt-get install -y gcc-aarch64-linux-gnu
+          else
+            sudo apt-get install -y gcc-arm-linux-gnueabihf
+          fi
+          
+      # 安装 MUSL 工具链
+      - name: Install musl-tools
+        if: matrix.rust_target == 'x86_64-unknown-linux-musl'
+        run: sudo apt-get install -y musl-tools
+        
+      # 安装 WASM 工具链
+      - name: Install wasm-pack
+        if: matrix.arch == 'wasm'
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      # 交叉编译
       - name: Build
-        run: cargo build --release --target ${{ matrix.rust_target }}
+        run: |
+          if [ "${{ matrix.arch }}" = "wasm" ]; then
+            wasm-pack build --target web --release
+            mkdir -p target/${{ matrix.rust_target }}/release
+            cp pkg/${{ env.BINARY_NAME }}_bg.wasm target/${{ matrix.rust_target }}/release/${{ env.BINARY_NAME }}${{ matrix.binary_suffix }}
+          else
+            cargo build --release --target ${{ matrix.rust_target }}
+          fi
+        shell: bash
+        env:
+          # 为 ARM 平台设置交叉编译环境变量
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+          CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER: arm-linux-gnueabihf-gcc
           
       - name: Package Binary
         shell: bash
@@ -78,6 +161,56 @@ jobs:
             tar -czf ${asset_name}.tar.gz ${asset_name}
             echo "ASSET_PATH=${asset_name}.tar.gz" >> $GITHUB_ENV
           fi
+          
+      # 为 WASM 创建附加的示例 HTML
+      - name: Create WASM package
+        if: matrix.arch == 'wasm'
+        shell: bash
+        run: |
+          cd target/${{ matrix.rust_target }}/release
+          mkdir -p wasm-package
+          cp ${{ env.BINARY_NAME }}${{ matrix.binary_suffix }} wasm-package/
+          
+          # 创建简单的HTML示例
+          cat > wasm-package/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="utf-8">
+              <title>NeoJiLang WASM Demo</title>
+            </head>
+            <body>
+              <h1>NeoJiLang WASM Demo</h1>
+              <script type="module">
+                import init from './neo_jilang.js';
+                
+                async function run() {
+                  await init();
+                  console.log("WASM模块已加载");
+                }
+                
+                run();
+              </script>
+            </body>
+          </html>
+          EOF
+          
+          # 创建必要的JS胶水代码
+          cat > wasm-package/neo_jilang.js << 'EOF'
+          async function init() {
+            const wasm = await WebAssembly.instantiateStreaming(
+              fetch("neo_jilang.wasm"), 
+              {}
+            );
+            return wasm.instance;
+          }
+          
+          export default init;
+          EOF
+          
+          # 打包WASM包
+          zip -r ${{ env.BINARY_NAME }}-wasm-package.zip wasm-package/
+          echo "ASSET_PATH=${{ env.BINARY_NAME }}-wasm-package.zip" >> $GITHUB_ENV
           
       # 使用actions/github-script上传资产，这种方式权限处理更可靠
       - name: Upload Release Asset
